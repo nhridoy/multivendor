@@ -1,0 +1,13 @@
+logs/
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+thumbnail.jpeg
+secrets.json
+/yarn.lock
+/node_modules/
+/package-lock.json
+/.idea
+venv
