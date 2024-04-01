@@ -14,7 +14,27 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+APP_TEMPLATE_DIR = BASE_DIR.joinpath("templates")
+APP_STATIC_DIR = BASE_DIR.joinpath("static")
+APP_MEDIA_DIR = BASE_DIR.joinpath("media")
+# environment variables
+from decouple import config
 
+# DJANGO: Configuration
+APP_DEBUG = config("DEBUG", default=False, cast=bool)
+APP_ON_PRODUCTION = config("ON_PRODUCTION", default=False, cast=bool)
+APP_SECRET_KEY = config("SECRET_KEY")
+APP_ALLOWED_HOST = config("ALLOWED_HOSTS").split(",")
+APP_CORS_HOSTS = config("CORS_HOSTS").split(",")
+APP_CORS_TRUSTED_ORIGIN = config("CORS_TRUSTED_ORIGIN").split(",")
+
+# DATABASE: configurations
+DB_ENGINE = config("DB_ENGINE", default="django.db.backends.sqlite3")
+DB_NAME = config("DB_NAME", default=BASE_DIR / "db.sqlite3")
+DB_USER = config("DB_USER")
+DB_PASSWORD = config("DB_PASSWORD")
+DB_HOST = config("DB_HOST")
+DB_PORT = config("DB_PORT")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -27,8 +47,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -37,6 +57,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # created apps
+    "authentications",
 ]
 
 MIDDLEWARE = [
@@ -66,20 +89,25 @@ TEMPLATES = [
         },
     },
 ]
+# AUTHENTICATION:  auth user model
+AUTH_USER_MODEL = "authentications.User"
 
 WSGI_APPLICATION = "core.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": DB_ENGINE,
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -99,7 +127,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -110,7 +137,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
