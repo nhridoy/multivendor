@@ -5,10 +5,11 @@ from django.contrib.contenttypes.models import ContentType
 
 from authentications.user_manager import UserManager
 
-
 # ========****************========
 # Custom authentications user model
 # ========****************========
+from core.models import BaseModel
+from utils.helper import content_file_path
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -73,3 +74,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
 
     objects = UserManager()
+
+
+class UserInformation(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_information")
+    first_name = models.CharField(max_length=100, verbose_name="First Name", blank=True, null=True)
+    last_name = models.CharField(max_length=100, verbose_name="Last Name", blank=True, null=True)
+    profile_picture = models.ImageField(upload_to=content_file_path, blank=True, null=True)
+    address = models.TextField(verbose_name="Address", blank=True, null=True)
+    date_of_birth = models.DateField(verbose_name="Date of Birth", blank=True, null=True)
+    phone_number = models.CharField(max_length=50, verbose_name="Phone Number", blank=True, null=True)
+
+
+class UserTwoStepVerification(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_two_step_verification")
+    is_active = models.BooleanField(default=False)
+    secret_key = models.CharField(max_length=255, blank=True, null=True)

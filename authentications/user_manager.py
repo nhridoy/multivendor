@@ -1,11 +1,14 @@
 from django.contrib.auth.models import BaseUserManager
 
+from django.db import transaction
+
 
 class UserManager(BaseUserManager):
     """
     This is the manager for custom user model
     """
 
+    @transaction.atomic
     def create_user(self, username, email, password=None):
         if not username:
             raise ValueError("Username should not be empty")
@@ -25,6 +28,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    @transaction.atomic
     def create_superuser(self, username, email, password=None):
         user = self.create_user(
             username=username,
