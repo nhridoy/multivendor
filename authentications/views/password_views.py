@@ -35,6 +35,7 @@ class ChangePasswordView(generics.UpdateAPIView):
             password_validation.validate_password(password=password, user=user)
             user.set_password(password)
             user.save()
+            print(settings.LOGOUT_ON_PASSWORD_CHANGE)
             if settings.LOGOUT_ON_PASSWORD_CHANGE:
                 self._logout_on_password_change(request=request)
             return True
