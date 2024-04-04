@@ -1,8 +1,8 @@
 import os
+import random
 from datetime import datetime
 
 
-# This function is used to generate a unique filename for the uploaded file
 def content_file_path(instance, filename):
     model_name = instance.__class__.__name__.replace("Model", "")
     ext = filename.split(".")[-1]

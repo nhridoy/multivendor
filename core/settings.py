@@ -29,6 +29,7 @@ DB_PORT = config("DB_PORT")
 # SYSTEM: configurations
 LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
 REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
+DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")
 
 # EMAIL: configurations
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
