@@ -29,7 +29,9 @@ DB_PORT = config("DB_PORT")
 # SYSTEM: configurations
 LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
 REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
-DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")
+DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")  # default OTP Secret Key
+# OTP Verification True will send otp code to user while registration
+OTP_ENABLED = config("OTP_ENABLED", default=False, cast=bool)
 
 # EMAIL: configurations
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -57,6 +59,7 @@ ALLOWED_HOSTS = APP_ALLOWED_HOST
 
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -70,6 +73,7 @@ INSTALLED_APPS = [
 
     # created apps
     "authentications",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -102,7 +106,8 @@ TEMPLATES = [
 # AUTHENTICATION:  auth user model
 AUTH_USER_MODEL = "authentications.User"
 
-WSGI_APPLICATION = "core.wsgi.application"
+# WSGI_APPLICATION = "core.wsgi.application" # WSGI Application
+ASGI_APPLICATION = "core.asgi.application"  # To run websockets use ASGI Application
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -241,3 +246,13 @@ MEDIA_ROOT = APP_MEDIA_ROOT
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CHANNELS CONFIGURATION
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

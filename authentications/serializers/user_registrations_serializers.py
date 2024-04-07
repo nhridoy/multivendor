@@ -1,5 +1,6 @@
 import random
 
+from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers, validators
 
@@ -63,6 +64,8 @@ class NewUserSerializer(serializers.ModelSerializer):
             email=validated_data["email"],
         )
         user.set_password(validated_data["password1"])
+        if not settings.OTP_ENABLED:
+            user.is_verified = True
         user.save()
 
         user_info = UserInformation.objects.get(user=user)
