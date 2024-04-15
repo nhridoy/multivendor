@@ -4,17 +4,18 @@ from core.models import BaseModel
 from utils.helper import content_file_path
 
 
-class ChatRoom(BaseModel):
+class ChatSession(BaseModel):
     name = models.CharField(max_length=256)
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='chat_rooms_participants')
     room_id = models.CharField(max_length=256, unique=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
 class ChatLog(BaseModel):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='chat_messages_room')
+    room = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='chat_messages_session')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     is_read = models.BooleanField(default=False)
 
@@ -23,7 +24,7 @@ class ChatLog(BaseModel):
 
 
 class ChatText(BaseModel):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='chat_texts_log')
+    room = models.ForeignKey(ChatLog, on_delete=models.CASCADE, related_name='chat_texts_log')
     content = models.CharField(max_length=1024)
 
     def __str__(self):
@@ -31,7 +32,7 @@ class ChatText(BaseModel):
 
 
 class ChatImage(BaseModel):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='chat_images_log')
+    room = models.ForeignKey(ChatLog, on_delete=models.CASCADE, related_name='chat_images_log')
     attachment = models.FileField(upload_to=content_file_path)
 
     def __str__(self):

@@ -2,7 +2,7 @@ from django.contrib.auth import login
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from authentications.auth_backend import AuthenticateUserByEUP as EPUA
+from authentications.auth_backend import EmailPhoneUsernameAuthenticationBackend as EPUA
 from authentications.serializers import CustomTokenObtainPairSerializer
 
 

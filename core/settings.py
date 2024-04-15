@@ -168,7 +168,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "utils.extensions.custom_pagination.CustomPagination",
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
-
+AUTHENTICATION_BACKENDS = [
+    'authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend'
+]
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -255,4 +257,15 @@ CHANNEL_LAYERS = {
             "hosts": [("127.0.0.1", 6379)],
         },
     },
+}
+
+# CACHE CONFIGURATION
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        }
+    }
 }
