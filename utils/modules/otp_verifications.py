@@ -9,7 +9,7 @@ class OTPVerification:
     data = dict
 
     def __init__(self, secret_key=settings.DEFAULT_OTP_SECRET, digit=4):
-        self.totp = pyotp.TOTP(secret_key, interval=settings.OTP_TIME, digits=digit)
+        self.totp = pyotp.TOTP(secret_key, interval=settings.OTP_EXPIRY, digits=digit)
 
     def generate_otp(self):
         otp = self.totp.now()

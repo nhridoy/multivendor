@@ -32,17 +32,8 @@ REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
 DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")  # default OTP Secret Key
 # OTP Verification True will send otp code to user while registration
 OTP_ENABLED = config("OTP_ENABLED", default=False, cast=bool)
-
-# EMAIL: configurations
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_PORT = config("EMAIL_PORT")
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
-DEFAULT_FROM_EMAIL = config(
-    "DEFAULT_FROM_EMAIL", default=f"Make My Menu Support <{EMAIL_HOST}>"
-)
+TWO_FACTOR_AUTHENTICATION = config("TWO_FACTOR_AUTHENTICATION", default=False, cast=bool)
+OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -269,3 +260,15 @@ CACHES = {
         }
     }
 }
+
+# EMAIL: configurations
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
+)
