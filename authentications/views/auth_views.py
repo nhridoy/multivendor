@@ -33,11 +33,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 otp_code = otp.generate_otp()
                 print(otp_code)
                 # email send for otp code
-                body = f"Your OTP code is {otp_code}"
-                # email = EmailSender(send_to=[user.email], subject="OTP Verification", body=body)
-                # email.send_email()
+                self.send_otp_email(user, otp_code)
 
-                return Response({"detail": "Otp Code sent"}, status=status.HTTP_200_OK)
+                return Response({"detail": "One Time Password sent"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
                 {"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED
@@ -56,3 +54,11 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         login(request, user)
         data = ser.validated_data
         return data
+
+    @staticmethod
+    def send_otp_email(user, otp):
+        body = f"Your OTP code is {otp}"
+        email = EmailSender(send_to=[user.email], subject="OTP Verification", body=body)
+        email.send_email()
+        print('email sent')
+        return True
