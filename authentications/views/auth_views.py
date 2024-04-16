@@ -61,4 +61,5 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         email = EmailSender(send_to=[user.email], subject="OTP Verification", body=body)
         email.send_email()
         print('email sent')
+
         return True

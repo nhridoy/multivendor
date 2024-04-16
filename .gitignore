@@ -156,6 +156,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+static/admin/
+static/rest_framework/
 
 
 # vscode

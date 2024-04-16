@@ -9,19 +9,19 @@ class AsyncWebConsumer(AsyncWebsocketConsumer):
         self.group_name = key
 
         # Send message to room group
-        await self.channel_layer.group_add(
-            self.group_name,
-            str(self.channel_name)
-        )
-        #
-        # await self.channel_layer.group_send(
+        # await self.channel_layer.group_add(
         #     self.group_name,
-        #     {
-        #         "type": "socket_connected",
-        #         "data": "Connected...",
-        #
-        #     },
+        #     str(self.channel_name)
         # )
+        #
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                "type": "socket_connected",
+                "data": "Connected...",
+
+            },
+        )
 
         await self.accept()
         # else:

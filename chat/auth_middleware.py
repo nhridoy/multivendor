@@ -7,10 +7,13 @@ from django.contrib.auth import get_user_model
 
 class JWTAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        query_string = scope.get("query_string", b"").decode("utf-8")
-        params = dict(p.split("=") for p in query_string.split("&") if "=" in p)
-        jwt_token = params.get("token")
+        # ===get value from query===
+        # query_string = scope.get("query_string", b"").decode("utf-8")
+        # params = dict(p.split("=") for p in query_string.split("&") if "=" in p)
+        # jwt_token = params.get("token")
 
+        # === get token value from headers===
+        jwt_token = dict(scope['headers']).get('token')
         if jwt_token:
             try:
                 decoded_token = jwt.decode(
