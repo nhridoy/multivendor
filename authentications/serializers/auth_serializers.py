@@ -1,4 +1,16 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+import contextlib
+
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.urls import exceptions as url_exceptions
+from django.utils.translation import gettext_lazy as _
+from rest_framework import exceptions, serializers
+from rest_framework_simplejwt import settings as jwt_settings, tokens
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from authentications.models import User
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

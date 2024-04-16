@@ -6,7 +6,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 APP_TEMPLATE_DIR = BASE_DIR.joinpath("templates")
 APP_STATIC_DIR = BASE_DIR.joinpath("static")
-APP_STATIC_ROOT = BASE_DIR.joinpath("static")
+APP_STATIC_ROOT = BASE_DIR.joinpath("staticfiles")
 APP_MEDIA_ROOT = BASE_DIR.joinpath("media")
 
 # environment variables
@@ -29,17 +29,11 @@ DB_PORT = config("DB_PORT")
 # SYSTEM: configurations
 LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
 REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
-
-# EMAIL: configurations
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_PORT = config("EMAIL_PORT")
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
-DEFAULT_FROM_EMAIL = config(
-    "DEFAULT_FROM_EMAIL", default=f"Make My Menu Support <{EMAIL_HOST}>"
-)
+DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")  # default OTP Secret Key
+# OTP Verification True will send otp code to user while registration
+OTP_ENABLED = config("OTP_ENABLED", default=False, cast=bool)
+TWO_FACTOR_AUTHENTICATION = config("TWO_FACTOR_AUTHENTICATION", default=False, cast=bool)
+OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -56,6 +50,7 @@ ALLOWED_HOSTS = APP_ALLOWED_HOST
 
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -69,10 +64,12 @@ INSTALLED_APPS = [
 
     # created apps
     "authentications",
+    "chat",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -101,7 +98,8 @@ TEMPLATES = [
 # AUTHENTICATION:  auth user model
 AUTH_USER_MODEL = "authentications.User"
 
-WSGI_APPLICATION = "core.wsgi.application"
+# WSGI_APPLICATION = "core.wsgi.application" # WSGI Application
+ASGI_APPLICATION = "core.asgi.application"  # To run websockets use ASGI Application
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -162,7 +160,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "utils.extensions.custom_pagination.CustomPagination",
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
-
+AUTHENTICATION_BACKENDS = [
+    'authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend'
+]
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -229,9 +229,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
-if APP_ON_PRODUCTION:
-    STATIC_ROOT = APP_STATIC_ROOT
+STATIC_ROOT = APP_STATIC_ROOT
 STATICFILES_DIRS = [APP_STATIC_DIR]
+
+# whitenoise
+STORAGES = {
+    # ...
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+WHITENOISE_AUTOREFRESH = True
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = APP_MEDIA_ROOT
@@ -240,3 +248,36 @@ MEDIA_ROOT = APP_MEDIA_ROOT
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CHANNELS CONFIGURATION
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+# CACHE CONFIGURATION
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        }
+    }
+}
+
+# EMAIL: configurations
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
+)

@@ -1,15 +1,17 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 
 User = get_user_model()
 
 
-class AuthenticateUserByEUP(object):
+class EmailPhoneUsernameAuthenticationBackend(object):
     @staticmethod
     def authenticate(request, username=None, password=None):
         try:
-            user = User.objects.get(Q(email=username) | Q(username=username), )
+            user = User.objects.get(
+                Q(username=username) | Q(email=username)
+            )
 
         except User.DoesNotExist:
             return None
