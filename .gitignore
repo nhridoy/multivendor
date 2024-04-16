@@ -159,6 +159,9 @@ cython_debug/
 static/admin/
 static/rest_framework/
 
+# docker
+docker-compose.yml
+
 
 # vscode
 .vscode/
