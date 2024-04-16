@@ -26,6 +26,9 @@ DB_PASSWORD = config("DB_PASSWORD")
 DB_HOST = config("DB_HOST")
 DB_PORT = config("DB_PORT")
 
+# REDIS: configurations
+REDIS_HOST = config("REDIS_HOST", default="localhost")
+
 # SYSTEM: configurations
 LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
 REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
@@ -254,7 +257,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(REDIS_HOST, 6379)],
         },
     },
 }
@@ -263,7 +266,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": f"redis://{REDIS_HOST}:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         }
