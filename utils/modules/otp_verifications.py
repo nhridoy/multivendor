@@ -20,12 +20,12 @@ class OTPVerification:
     def verify_otp(self, otp_code):
         return self.totp.verify(otp_code.strip())
 
-    # def send_otp(self, send_to, name="User", company="Potential", procedure="Verification", valid_time="30 Min"):
-    #     self.otp_code = self.generate_otp()
-    #     email = EmailSender(subject="OTP Verification", send_to=send_to, context={"name": name, "company": company,
-    #                                                                               "otp_code": self.otp_code,
-    #                                                                               "procedure": procedure,
-    #                                                                               "valid_time": valid_time},
-    #                         template="email_templates/email_otp.html")
-    #     self.data = {"otp_code": self.otp_code}
-    #     return self.data
+    def send_otp(self, send_to, context=None):
+        self.otp_code = self.generate_otp()
+        context['otp_code'] = self.otp_code
+
+        email = EmailSender(subject="OTP Verification", send_to=send_to, context=context,
+                            template="email_templates/email_otp.html")
+        email.templated_email_send()
+        print('templated email sent successfully')
+        return True
