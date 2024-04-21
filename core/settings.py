@@ -44,6 +44,8 @@ OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = APP_SECRET_KEY
 
+ENC_SECRET_KEY = config("ENC_SECRET_KEY", default="1234567890")  # Encryption Secret Key
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = APP_DEBUG
 
