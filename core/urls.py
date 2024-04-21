@@ -16,7 +16,9 @@ swagger_urlpatterns = [
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("authentications.urls")),
-
+    # app urls
+    path("api/notices/", include("notice.urls")),
+    path("api/notifications/", include("notifications.urls")),
 ]
 # serving media and static files
 media_url = [

@@ -30,10 +30,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 if 'otp' in request.data:
                     # if otp code is provided
                     return self.verify_otp(request, user, serializer, otp)
-                otp_code = otp.generate_otp()
-                print(otp_code)
+                # otp_code = otp.generate_otp()
+
                 # email send for otp code
-                self.send_otp_email(user, otp_code)
+                self.send_otp_email(user, otp)
 
                 return Response({"detail": "One Time Password sent"}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -56,10 +56,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return data
 
     @staticmethod
-    def send_otp_email(user, otp):
-        body = f"Your OTP code is {otp}"
-        email = EmailSender(send_to=[user.email], subject="OTP Verification", body=body)
-        email.send_email()
-        print('email sent')
+    def send_otp_email(user, obj):
+        context = {
+            "name": "test",
+            "company": "potentail",
+            "procedure": "Login",
+            "valid_time": "5 minutes",
 
-        return True
+        }
+        obj.send_otp([user.email], context)
+        return

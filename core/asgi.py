@@ -6,7 +6,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django_asgi_app = get_asgi_application()
 
 from chat.routing import websocket_urlpatterns
-from chat.auth_middleware import JWTAuthMiddleware
+from utils.middleware import JWTAuthMiddleware
 
 application = ProtocolTypeRouter(
     {
