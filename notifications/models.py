@@ -19,6 +19,7 @@ class Notifications(BaseModel):
 class Groups(BaseModel):
     name = models.CharField(max_length=100)
     description = models.CharField(blank=True, max_length=255)
+    group_participants = models.ManyToManyField(User, related_name="group_participants")
 
     def __str__(self):
         return self.name
