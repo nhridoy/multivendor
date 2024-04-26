@@ -2,6 +2,9 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
+# fcm settings
+from firebase_admin import initialize_app
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 APP_TEMPLATE_DIR = BASE_DIR.joinpath("templates")
@@ -64,8 +67,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Library packages
-    'rest_framework',
-    'drf_spectacular',
+    "rest_framework",
+    "drf_spectacular",
+    "fcm_django",  # Firebase Cloud Messaging For push notifications
 
     # created apps
     "authentications",
@@ -288,3 +292,21 @@ EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
 DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
 )
+
+# FIREBASE: Configurations
+
+FIREBASE_APP = initialize_app()
+FCM_DJANGO_SETTINGS = {
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": None,
+    # default: _('FCM Django')
+    "APP_VERBOSE_NAME": "[Potential]",
+    # true if you want to have only one active device per registered user at a time
+    # default: False
+    "ONE_DEVICE_PER_USER": False,
+    # devices to which notifications cannot be sent,
+    # are deleted upon receiving error response from FCM
+    # default: False
+    "DELETE_INACTIVE_DEVICES": False,
+}
