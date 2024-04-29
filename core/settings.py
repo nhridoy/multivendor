@@ -1,9 +1,11 @@
+import json
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
 # fcm settings
-from firebase_admin import initialize_app
+import firebase_admin
+from firebase_admin import initialize_app, credentials
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -295,11 +297,15 @@ DEFAULT_FROM_EMAIL = config(
 
 # FIREBASE: Configurations
 
-FIREBASE_APP = initialize_app()
+
+cred = credentials.Certificate("google-services.json")
+FIREBASE_MESSAGING_APP = firebase_admin.initialize_app(cred)
+# FIREBASE_APP = initialize_app()
 FCM_DJANGO_SETTINGS = {
+
     # an instance of firebase_admin.App to be used as default for all fcm-django requests
     # default: None (the default Firebase app)
-    "DEFAULT_FIREBASE_APP": None,
+    "DEFAULT_FIREBASE_APP": FIREBASE_MESSAGING_APP,
     # default: _('FCM Django')
     "APP_VERBOSE_NAME": "[Potential]",
     # true if you want to have only one active device per registered user at a time

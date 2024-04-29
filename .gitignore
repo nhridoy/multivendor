@@ -165,6 +165,7 @@ docker-compose.yml
 
 # vscode
 .vscode/
+google-services.json
 
 #testing script and other things
 testing.py
