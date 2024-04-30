@@ -41,4 +41,8 @@ urlpatterns += media_url
 urlpatterns += router.urls
 if settings.DEBUG and not settings.APP_ON_PRODUCTION:
     urlpatterns += swagger_urlpatterns
+    # if app is in debug mode enable django toolbar
+    urlpatterns.append(
+        path("__debug__/", include("debug_toolbar.urls")),
+    )
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
