@@ -8,6 +8,6 @@ router = DefaultRouter()
 router.register('notifications', NotificationsView, basename='notifications')
 
 urlpatterns = [
-    path('test/', FcmAPIView.as_view({"post": "post"}), name='fcm'),
+    path('push-notifications/', FcmAPIView.as_view({"post": "post"}), name='push_notifications'),
 ]
 urlpatterns += router.urls

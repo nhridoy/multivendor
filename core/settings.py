@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "fcm_django",  # Firebase Cloud Messaging For push notifications
+    "debug_toolbar",  # django debug toolbar
 
     # created apps
     "authentications",
@@ -89,6 +90,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",  # debug toolbar
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -316,3 +318,8 @@ FCM_DJANGO_SETTINGS = {
     # default: False
     "DELETE_INACTIVE_DEVICES": False,
 }
+
+# DJANGO DEBUG TOOLBAR: Configurations
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

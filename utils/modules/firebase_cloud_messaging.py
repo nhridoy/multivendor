@@ -113,10 +113,10 @@ class FCMNotificationSender:
                 return True
             else:
                 print("No devices registered.")
-                return False
+                raise FCMDevice.DoesNotExist
         except Exception as e:
             print(f"An error occurred while sending notification: {e}")
-            return False
+            raise Exception(e)
 
     def send_group_notification(self):
         try:
@@ -126,10 +126,11 @@ class FCMNotificationSender:
                 return True
             else:
                 print("No devices registered.")
-                return False
+
+                raise FCMDevice.DoesNotExist
         except Exception as e:
             print(f"An error occurred while sending group notification: {e}")
-            return False
+            raise Exception(e)
 
     def subscribing_topic(self):
         if self.tokens is None:
