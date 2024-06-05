@@ -1,6 +1,8 @@
 import pyotp
 from django.conf import settings
 
+from utils.modules import EmailSender
+
 
 class OTPVerification:
     secret_key: str
@@ -17,3 +19,13 @@ class OTPVerification:
 
     def verify_otp(self, otp_code):
         return self.totp.verify(otp_code.strip())
+
+    def send_otp(self, send_to, context=None):
+        self.otp_code = self.generate_otp()
+        context['otp_code'] = self.otp_code
+
+        email = EmailSender(subject="OTP Verification", send_to=send_to, context=context,
+                            template="email_templates/email_otp.html")
+        email.templated_email_send()
+        print('templated email sent successfully')
+        return True

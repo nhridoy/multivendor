@@ -66,9 +66,10 @@ class PasswordResetVerifySerializer(serializers.Serializer):
     def validate_one_time_password(self, value):
         token = self.context.get("token")
         user, otp, _decrypted_data = self._validate_user(token)
+        print()
         if otp != value:
             raise serializers.ValidationError("OTP Invalid")
-        hotp = pyotp.HOTP(user.user_otp.key)
+        hotp = pyotp.HOTP(user.user_two_step_verification.secret_key)
         if not hotp.verify(value, 1):
             raise serializers.ValidationError("Invalid one-time password")
         return self._verify_otp(_decrypted_data)

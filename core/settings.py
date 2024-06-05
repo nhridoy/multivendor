@@ -1,6 +1,11 @@
+import json
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+
+# fcm settings
+import firebase_admin
+from firebase_admin import initialize_app, credentials
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +31,9 @@ DB_PASSWORD = config("DB_PASSWORD")
 DB_HOST = config("DB_HOST")
 DB_PORT = config("DB_PORT")
 
+# REDIS: configurations
+REDIS_HOST = config("REDIS_HOST", default="localhost")
+
 # SYSTEM: configurations
 LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
 REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
@@ -40,6 +48,8 @@ OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = APP_SECRET_KEY
+
+ENC_SECRET_KEY = config("ENC_SECRET_KEY", default="1234567890")  # Encryption Secret Key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = APP_DEBUG
@@ -59,12 +69,16 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Library packages
-    'rest_framework',
-    'drf_spectacular',
+    "rest_framework",
+    "drf_spectacular",
+    "fcm_django",  # Firebase Cloud Messaging For push notifications
+    "debug_toolbar",  # django debug toolbar
 
     # created apps
     "authentications",
     "chat",
+    "notice",
+    "notifications"
 ]
 
 MIDDLEWARE = [
@@ -76,6 +90,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",  # debug toolbar
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -164,8 +179,8 @@ AUTHENTICATION_BACKENDS = [
     'authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend'
 ]
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=90),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": True,
@@ -254,7 +269,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(REDIS_HOST, 6379)],
         },
     },
 }
@@ -263,7 +278,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": f"redis://{REDIS_HOST}:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         }
@@ -281,3 +296,30 @@ EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
 DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
 )
+
+# FIREBASE: Configurations
+
+
+cred = credentials.Certificate("google-services.json")
+FIREBASE_MESSAGING_APP = firebase_admin.initialize_app(cred)
+# FIREBASE_APP = initialize_app()
+FCM_DJANGO_SETTINGS = {
+
+    # an instance of firebase_admin.App to be used as default for all fcm-django requests
+    # default: None (the default Firebase app)
+    "DEFAULT_FIREBASE_APP": FIREBASE_MESSAGING_APP,
+    # default: _('FCM Django')
+    "APP_VERBOSE_NAME": "[Potential]",
+    # true if you want to have only one active device per registered user at a time
+    # default: False
+    "ONE_DEVICE_PER_USER": False,
+    # devices to which notifications cannot be sent,
+    # are deleted upon receiving error response from FCM
+    # default: False
+    "DELETE_INACTIVE_DEVICES": False,
+}
+
+# DJANGO DEBUG TOOLBAR: Configurations
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

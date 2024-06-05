@@ -1,0 +1,17 @@
+services:
+  potential_app:
+    container_name: tobeone
+    image: 'imageFromDockerHub:latest'
+    restart: unless-stopped
+    volumes:
+      - './media:/app/media'
+      - './google-services.json:/app/google-services.json:ro'
+    env_file: .env
+    ports:
+      - "8000:8000"
+
+# networks to keep the container in the same network as the nginx proxy
+networks:
+  default:
+    external: true
+    name: network name
