@@ -1,11 +1,13 @@
+import os
 import json
 from pathlib import Path
 from decouple import config
+from dotenv import load_dotenv
 from datetime import timedelta
-
-# fcm settings
 import firebase_admin
 from firebase_admin import initialize_app, credentials
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,32 +18,30 @@ APP_MEDIA_ROOT = BASE_DIR.joinpath("media")
 
 # environment variables
 # DJANGO: Configuration
-APP_DEBUG = config("DEBUG", default=False, cast=bool)
-APP_ON_PRODUCTION = config("ON_PRODUCTION", default=False, cast=bool)
-APP_SECRET_KEY = config("SECRET_KEY")
-APP_ALLOWED_HOST = config("ALLOWED_HOSTS").split(",")
-APP_CORS_HOSTS = config("CORS_HOSTS").split(",")
-APP_CORS_TRUSTED_ORIGIN = config("CORS_TRUSTED_ORIGIN").split(",")
+APP_DEBUG = os.getenv("DEBUG") == "True"
+APP_SECRET_KEY = os.getenv("SECRET_KEY")
+APP_ALLOWED_HOST = os.getenv("ALLOWED_HOSTS").split(",")
+APP_CORS_HOSTS = os.getenv("CORS_HOSTS").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(",")
 
 # DATABASE: configurations
-DB_ENGINE = config("DB_ENGINE", default="django.db.backends.sqlite3")
-DB_NAME = config("DB_NAME", default=BASE_DIR / "db.sqlite3")
-DB_USER = config("DB_USER")
-DB_PASSWORD = config("DB_PASSWORD")
-DB_HOST = config("DB_HOST")
-DB_PORT = config("DB_PORT")
+DB_ENGINE = os.getenv("DB_ENGINE", default="django.db.backends.sqlite3")
+DB_NAME = os.getenv("DB_NAME", default=BASE_DIR / "db.sqlite3")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
 
 # REDIS: configurations
-REDIS_HOST = config("REDIS_HOST", default="localhost")
+REDIS_HOST = os.getenv("REDIS_HOST", default="localhost")
 
 # SYSTEM: configurations
-LOGOUT_ON_PASSWORD_CHANGE = config("LOGOUT_ON_PASSWORD_CHANGE", default=False, cast=bool)
-REST_SESSION_LOGIN = config("REST_SESSION_LOGIN", default=False, cast=bool)
-DEFAULT_OTP_SECRET = config("DEFAULT_OTP_SECRET", default="1234567890")  # default OTP Secret Key
+LOGOUT_ON_PASSWORD_CHANGE = os.getenv("LOGOUT_ON_PASSWORD_CHANGE") == "True"
+REST_SESSION_LOGIN = os.getenv("REST_SESSION_LOGIN") == "True"
+DEFAULT_OTP_SECRET = os.getenv("DEFAULT_OTP_SECRET", default="1234567890")  # default OTP Secret Key
 # OTP Verification True will send otp code to user while registration
-OTP_ENABLED = config("OTP_ENABLED", default=False, cast=bool)
-TWO_FACTOR_AUTHENTICATION = config("TWO_FACTOR_AUTHENTICATION", default=False, cast=bool)
-OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
+OTP_ENABLED = os.getenv("OTP_ENABLED") == "True"
+OTP_EXPIRY = os.getenv("OTP_EXPIRY", default='30')  # OTP Expiry Time
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -49,7 +49,7 @@ OTP_EXPIRY = config("OTP_EXPIRY", default=30, cast=int)  # OTP Expiry Time
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = APP_SECRET_KEY
 
-ENC_SECRET_KEY = config("ENC_SECRET_KEY", default="1234567890")  # Encryption Secret Key
+FERNET_SECRET_KEY = os.getenv("FERNET_SECRET_KEY", default="bhcTDnLm8eii39PHQ0g34uyDfxiSBIq__YQtPmufkFg=")  # Encryption Secret Key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = APP_DEBUG
@@ -287,13 +287,13 @@ CACHES = {
 
 # EMAIL: configurations
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_PORT = config("EMAIL_PORT")
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)
-DEFAULT_FROM_EMAIL = config(
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL") == "True"
+DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
 )
 
