@@ -80,7 +80,6 @@ class ResetPasswordSerializer(serializers.Serializer):
         return value
 
 
-
 class ResetPasswordCheckSerializer(serializers.Serializer):
     """
     Serializer for reset-password-check api view

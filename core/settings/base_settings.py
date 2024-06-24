@@ -28,6 +28,7 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 INSTALLED_APPS = [
     "daphne",
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
     "notice",
     "notifications",
     "article",
-    'forum',
+    "forum",
     "support",
     "options",
 ]

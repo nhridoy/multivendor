@@ -1,6 +1,6 @@
-from .base_settings import DEBUG, APP_MEDIA_ROOT, APP_STATIC_DIR, APP_STATIC_ROOT
 import os
 
+from .base_settings import APP_MEDIA_ROOT, APP_STATIC_DIR, APP_STATIC_ROOT, DEBUG
 
 STATIC_URL = "static/"
 STATIC_ROOT = APP_STATIC_ROOT

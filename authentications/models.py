@@ -100,7 +100,7 @@ class UserInformation(BaseModel):
         blank=True,
         null=True,
     )
-    nationality = models.ForeignKey(
+    country = models.ForeignKey(
         "options.Country", on_delete=models.SET_NULL, null=True, blank=True
     )
 

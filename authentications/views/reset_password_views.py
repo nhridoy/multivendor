@@ -7,13 +7,13 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import generics, status, viewsets, views, exceptions
+from rest_framework import exceptions, generics, status, views, viewsets
 from rest_framework.response import Response
 
 from authentications import models, serializers
-from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 from authentications.views.helper import generate_link, send_verification_email
 from utils import helper
+from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 from utils.helper import decode_token, decrypt
 
 
@@ -115,7 +115,6 @@ class ResetPasswordConfirmView(views.APIView):
         user.set_password(ser.data.get("password"))
         user.save()
         return Response({"detail": "Password Changed Successfully"})
-
 
 
 class PasswordResetView(generics.GenericAPIView):

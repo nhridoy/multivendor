@@ -22,7 +22,7 @@ class PasswordValidateView(views.APIView):
         serializer.is_valid(raise_exception=True)
 
         if current_user.check_password(
-                serializer.validated_data.get("password"),
+            serializer.validated_data.get("password"),
         ):
             return response.Response(
                 {"data": "Password Accepted"}, status=status.HTTP_200_OK
@@ -75,5 +75,6 @@ class ChangePasswordView(generics.UpdateAPIView):
             user=user,
             password=password,
         )
+
 
 # reset password

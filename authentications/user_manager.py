@@ -22,11 +22,10 @@ class UserManager(BaseUserManager):
             user = self.model(
                 username=username,
                 email=self.normalize_email(email=email),
+                oauth_provider=oauth_provider,
             )
         else:
-            user = self.model(
-                username=username,
-            )
+            user = self.model(username=username, oauth_provider=oauth_provider)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -37,10 +36,14 @@ class UserManager(BaseUserManager):
             raise ValueError("Password should not be empty")
 
         user = self.create_user(
-            username=username, email=email, password=password, oauth_provider=oauth_provider
+            username=username,
+            email=email,
+            password=password,
+            oauth_provider=oauth_provider,
         )
         user.is_superuser = True
         user.is_staff = True
         user.is_active = True
+        user.is_verified = True
         user.save(using=self._db)
         return user

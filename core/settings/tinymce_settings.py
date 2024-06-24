@@ -1,5 +1,7 @@
 import os
+
 from .base_settings import BASE_DIR
+
 TINYMCE_URL = "tinystatic/"
 TINYMCE_JS_URL = os.path.join(BASE_DIR, TINYMCE_URL, "tinymce/tinymce.min.js")
 # TINYMCE_JS_URL = 'https://cdn.tiny.cloud/1/qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc/tinymce/7.0.1-37/tinymce.min.js'
