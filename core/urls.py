@@ -29,18 +29,18 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("authentications.urls")),
     # app urls
-    path("api/notices/", include("notice.urls")),
-    path("api/notifications/", include("notifications.urls")),
-# app urls
     path("api/articles/", include("article.urls")),
     path("api/forum/", include("forum.urls")),
-    # path("api/options/", OptionsListView.as_view(), name="options-list"),
+    path("api/options/", include("options.urls")),
     path("api/support/", include("support.urls")),
 ]
 # serving media and static files
 media_url = [
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     re_path(r"^static/(?P<path>.*)$", serve, {"document_root": settings.STATIC_ROOT}),
+    re_path(
+        r"^tinystatic/(?P<path>.*)$", serve, {"document_root": settings.TINYMCE_URL}
+    ),
 ]
 
 fcm_urls = [

@@ -1,15 +1,14 @@
 import os
 
-from decouple import config
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 
 # from users.models import email_superuser
 
-SUPERUSER_USERNAME = config("SUPERUSER_USERNAME")
-SUPERUSER_EMAIL = config("SUPERUSER_EMAIL")
-SUPERUSER_PASSWORD = config("SUPERUSER_PASSWORD")
+SUPERUSER_USERNAME = os.getenv("SUPERUSER_USERNAME")
+SUPERUSER_EMAIL = os.getenv("SUPERUSER_EMAIL")
+SUPERUSER_PASSWORD = os.getenv("SUPERUSER_PASSWORD")
 
 if not SUPERUSER_PASSWORD:
     raise ImproperlyConfigured("'SUPERUSER_PASSWORD' environment variable is unset")

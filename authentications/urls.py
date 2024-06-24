@@ -10,13 +10,12 @@ from authentications.views import (
     ChangePasswordView,
     CustomTokenObtainPairView,
     NewUserView,
-PasswordValidateView
-
+    PasswordValidateView,
 )
 from authentications.views.reset_password_views import (
     PasswordResetConfirmView,
     PasswordResetView,
-    ResetPasswordView
+    ResetPasswordView,
 )
 
 router = DefaultRouter()

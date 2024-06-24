@@ -1,16 +1,13 @@
 from django.db import transaction
 from django.db.models import Avg
 from rest_framework import serializers
+
+from authentications.models import User, UserInformation, UserTwoStepVerification
 from options.serializers import (
     CitySerializer,
     CountrySerializer,
     LanguageSerializer,
     ProvinceSerializer,
-)
-from authentications.models import (
-    User,
-    UserInformation,
-    UserTwoStepVerification,
 )
 
 

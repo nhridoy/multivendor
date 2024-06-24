@@ -21,6 +21,9 @@ class Inquiry(BaseModel):
 
 
 class InquiryAnswer(BaseModel):
+    user = models.ForeignKey(
+        "authentications.User", on_delete=models.CASCADE, related_name="inquiry_answers"
+    )
     inquiry = models.OneToOneField(
         Inquiry, on_delete=models.CASCADE, related_name="answer"
     )

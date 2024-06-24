@@ -2,8 +2,8 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from options.models import City, Province
 from forum.models import Forum, ForumComment, ForumImage, Tag
+from options.models import City, Province
 
 
 class TagSerializer(ModelSerializer):
