@@ -65,6 +65,18 @@ def generate_link(user: User, origin: str, route: str) -> str:
 
     return f"{origin}/auth/{route}/{encrypt(encode_token(payload=payload)).decode()}/"
 
+def generate_token(user: User):
+    payload = {
+        "user": str(user.id),
+        "exp": datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(minutes=30),
+    }
+    token = encrypt(encode_token(payload=payload)).decode()
+    return token
+
+def generate_otp(user: User):
+    otp = f'{user.id}{random.randint(10000, 99999)}'
+    return otp
 
 def send_otp_email(user, otp):
     body = f"Your OTP code is {otp}"
