@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from notice.models import Notice, NoticeType, NoticeRecipient
+from notice.models import Notice, NoticeRecipient, NoticeType
 
 
 class NoticeTypeSerializer(ModelSerializer):

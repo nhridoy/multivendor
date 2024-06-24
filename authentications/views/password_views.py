@@ -1,13 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import logout, password_validation
 from django.shortcuts import redirect
-from rest_framework import (
-    exceptions,
-    generics,
-    permissions,
-    response,
-    status,
-)
+from rest_framework import exceptions, generics, permissions, response, status
+
 from authentications import serializers
 
 
@@ -61,9 +56,9 @@ class ChangePasswordView(generics.UpdateAPIView):
         if password != retype_password:
             raise exceptions.NotAcceptable(detail="Passwords do not match")
         if self._change_password(
-                request=request,
-                user=user,
-                password=password,
+            request=request,
+            user=user,
+            password=password,
         ):
             return response.Response(
                 {"detail": "Password updated successfully"},
@@ -73,5 +68,6 @@ class ChangePasswordView(generics.UpdateAPIView):
             {"detail": "Password updated Failed"},
             status=status.HTTP_403_FORBIDDEN,
         )
+
 
 # reset password

@@ -1,9 +1,9 @@
 import os
 
+from decouple import config
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
-from decouple import config
 
 # from users.models import email_superuser
 
@@ -31,8 +31,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if (
-                not User.objects.filter(username=SUPERUSER_USERNAME).exists()
-                or not User.objects.filter(email=SUPERUSER_EMAIL).exists()
+            not User.objects.filter(username=SUPERUSER_USERNAME).exists()
+            or not User.objects.filter(email=SUPERUSER_EMAIL).exists()
         ):
             User.objects.create_superuser(
                 username=SUPERUSER_USERNAME,

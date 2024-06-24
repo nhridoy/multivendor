@@ -5,11 +5,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import (
-    generics,
-    status,
-    viewsets,
-)  # noqa
+from rest_framework import generics, status, viewsets  # noqa
 from rest_framework.response import Response
 
 from authentications import models, serializers
@@ -53,7 +49,7 @@ class PasswordResetView(generics.GenericAPIView):
 
         try:
             user_name = (
-                    user.user_information.first_name + " " + user.user_information.last_name
+                user.user_information.first_name + " " + user.user_information.last_name
             )
         except:
             user_name = "Dear"

@@ -22,10 +22,14 @@ class OTPVerification:
 
     def send_otp(self, send_to, context=None):
         self.otp_code = self.generate_otp()
-        context['otp_code'] = self.otp_code
+        context["otp_code"] = self.otp_code
 
-        email = EmailSender(subject="OTP Verification", send_to=send_to, context=context,
-                            template="email_templates/email_otp.html")
+        email = EmailSender(
+            subject="OTP Verification",
+            send_to=send_to,
+            context=context,
+            template="email_templates/email_otp.html",
+        )
         email.templated_email_send()
-        print('templated email sent successfully')
+        print("templated email sent successfully")
         return True

@@ -7,6 +7,3 @@ from notifications.serializers import NotificationSerializer
 class NotificationsView(ModelViewSet):
     queryset = Notifications.objects.select_related()
     serializer_class = NotificationSerializer
-
-
-

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
+
 from authentications.models import User
 from utils import helper
 

@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from notifications.models import Notifications, Groups, NotificationsGroup
+from notifications.models import Groups, Notifications, NotificationsGroup
 
 
 class NotificationSerializer(ModelSerializer):

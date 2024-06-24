@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 
-from notice.models import NoticeType, Notice
-from notice.serializers import NoticeTypeSerializer, NoticeSerializer
+from notice.models import Notice, NoticeType
+from notice.serializers import NoticeSerializer, NoticeTypeSerializer
 
 
 class NoticeTypeView(ModelViewSet):
@@ -10,7 +10,5 @@ class NoticeTypeView(ModelViewSet):
 
 
 class NoticeView(ModelViewSet):
-    queryset = Notice.objects.select_related('type', 'author')
+    queryset = Notice.objects.select_related("type", "author")
     serializer_class = NoticeSerializer
-
-

@@ -6,8 +6,16 @@ from core.models import BaseModel
 
 
 class Notifications(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notification_user", null=True, blank=True)
-    title = models.CharField(max_length=200, )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notification_user",
+        null=True,
+        blank=True,
+    )
+    title = models.CharField(
+        max_length=200,
+    )
     content = models.TextField()
     is_read = models.BooleanField(default=False)
     groups_notification = models.BooleanField(default=False)
@@ -26,8 +34,12 @@ class Groups(BaseModel):
 
 
 class NotificationsGroup(BaseModel):
-    notification = models.ForeignKey(Notifications, on_delete=models.CASCADE, related_name="notification_group")
-    group = models.ForeignKey(Groups, on_delete=models.CASCADE, related_name="group_notification")
+    notification = models.ForeignKey(
+        Notifications, on_delete=models.CASCADE, related_name="notification_group"
+    )
+    group = models.ForeignKey(
+        Groups, on_delete=models.CASCADE, related_name="group_notification"
+    )
 
     def __str__(self):
         return self.group.name

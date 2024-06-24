@@ -86,8 +86,8 @@
 #             notification=Notification(title=title, body=body, image=image)
 #         )
 
+from django.shortcuts import get_list_or_404, get_object_or_404
 from fcm_django.models import FCMDevice
-from django.shortcuts import get_object_or_404, get_list_or_404
 from firebase_admin.messaging import Message, Notification
 
 
@@ -166,5 +166,7 @@ class FCMNotificationSender:
 
     def generate_message(self):
         return Message(
-            notification=Notification(title=self.title, body=self.body, image=self.image)
+            notification=Notification(
+                title=self.title, body=self.body, image=self.image
+            )
         )
