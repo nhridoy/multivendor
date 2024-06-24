@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     "chat",
     "notice",
     "notifications",
+    "article",
+    'forum',
+    "support"
 ]
 
 MIDDLEWARE = [
@@ -109,36 +112,6 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend"
 ]
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
-
-STATIC_URL = "static/"
-STATIC_ROOT = APP_STATIC_ROOT
-STATICFILES_DIRS = [APP_STATIC_DIR]
-
-# whitenoise
-STORAGES = {
-    # ...
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
-WHITENOISE_AUTOREFRESH = True
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = APP_MEDIA_ROOT
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

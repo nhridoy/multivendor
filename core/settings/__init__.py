@@ -12,3 +12,6 @@ from .redis_settings import *
 from .solapi_settings import *
 from .cors_settings import *
 from .tinymce_settings import *
+from .language_settings import *
+from .storage_settings import *
+from .social_auth_settings import *

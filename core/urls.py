@@ -31,6 +31,11 @@ urlpatterns = [
     # app urls
     path("api/notices/", include("notice.urls")),
     path("api/notifications/", include("notifications.urls")),
+# app urls
+    path("api/articles/", include("article.urls")),
+    path("api/forum/", include("forum.urls")),
+    # path("api/options/", OptionsListView.as_view(), name="options-list"),
+    path("api/support/", include("support.urls")),
 ]
 # serving media and static files
 media_url = [
