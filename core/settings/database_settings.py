@@ -5,7 +5,6 @@ from .base_settings import BASE_DIR
 # -------------------------------------
 # DATABASE: configurations
 # -------------------------------------
-print(BASE_DIR)
 DATABASES = {
     "default": {
         "ENGINE": os.getenv("DB_ENGINE", default="django.db.backends.sqlite3"),
