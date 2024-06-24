@@ -16,7 +16,7 @@ from utils import helper
 # Password reset views
 # ============***********============
 class PasswordResetView(generics.GenericAPIView):
-    serializer_class = serializers.EmailSerializer
+    serializer_class = serializers.ResetPasswordSerializer
     permission_classes = []
     authentication_classes = []
 
