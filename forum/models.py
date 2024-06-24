@@ -23,8 +23,8 @@ class Forum(BaseModel):
         null=True,
         related_name="forum_author",
     )
-    province = models.ForeignKey("authentications.Province", on_delete=models.PROTECT)
-    city = models.ForeignKey("authentications.City", on_delete=models.PROTECT)
+    province = models.ForeignKey("options.Province", on_delete=models.PROTECT)
+    city = models.ForeignKey("options.City", on_delete=models.PROTECT)
     tags = models.ManyToManyField(Tag, related_name="tags")
     total_like = models.PositiveIntegerField(default=0, editable=False)
     total_comment = models.PositiveIntegerField(default=0, editable=False)

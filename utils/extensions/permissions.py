@@ -1,7 +1,7 @@
-from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework import permissions
 
 
-class IsAuthenticatedAndEmailVerified(BasePermission):
+class IsAuthenticatedAndEmailVerified(permissions.BasePermission):
     """
     Allows access only to authenticated users who are verified.
     """
@@ -12,7 +12,7 @@ class IsAuthenticatedAndEmailVerified(BasePermission):
         )
 
 
-class IsAuthenticatedAndEmailNotVerified(BasePermission):
+class IsAuthenticatedAndEmailNotVerified(permissions.BasePermission):
     """
     Allows access only to authenticated users without a verified email.
     """
@@ -25,38 +25,28 @@ class IsAuthenticatedAndEmailNotVerified(BasePermission):
         )
 
 
-class IsSeller(BasePermission):
-    def has_permission(self, request, view):
-        return bool(request.user.role == "seller")
-
-
-class IsBuyer(BasePermission):
-    def has_permission(self, request, view):
-        return bool(request.user.role == "buyer")
-
-
-class IsAdmin(BasePermission):
+class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_superuser)
 
 
-class IsAdminOrReadOnly(BasePermission):
+class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS:
             return True
         return bool(request.user and request.user.is_superuser)
 
 
-class IsOwnerOrReadOnly(BasePermission):
+class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS:
             return True
         return obj.user == request.user
 
 
-class IsUserOrReadOnly(BasePermission):
+class IsUserOrReadOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.method in SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS:
             return True
         return obj == request.user
