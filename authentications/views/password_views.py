@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from rest_framework import exceptions, generics, permissions, response, status, views
 
 from authentications import serializers
-from authentications.permissions import IsAuthenticatedAndEmailVerified
+from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 
 
 class PasswordValidateView(views.APIView):

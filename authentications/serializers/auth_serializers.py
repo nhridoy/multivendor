@@ -40,3 +40,6 @@ class OTPCheckSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTwoStepVerification
         fields = ["is_active"]
+
+class LogoutSerializer(serializers.Serializer):
+    device_id = serializers.CharField(write_only=True)

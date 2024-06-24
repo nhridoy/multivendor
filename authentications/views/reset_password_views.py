@@ -11,7 +11,7 @@ from rest_framework import generics, status, viewsets, views, exceptions
 from rest_framework.response import Response
 
 from authentications import models, serializers
-from authentications.permissions import IsAuthenticatedAndEmailVerified
+from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 from authentications.views.helper import generate_link, send_verification_email
 from utils import helper
 from utils.helper import decode_token, decrypt

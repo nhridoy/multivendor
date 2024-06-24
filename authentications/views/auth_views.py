@@ -19,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from authentications.models import User, UserTwoStepVerification
-from authentications.permissions import IsAuthenticatedAndEmailVerified
+from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 from authentications.serializers import (  # TokenRefreshSerializer
     CustomTokenObtainPairSerializer,
     OTPCheckSerializer,

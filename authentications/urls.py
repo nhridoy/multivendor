@@ -25,8 +25,8 @@ password_urls = [
     path("password-validate/", PasswordValidateView.as_view()),
     path("password-change/", ChangePasswordView.as_view(), name="change_password"),
     path("password-reset/", ResetPasswordView.as_view()),
-    path("password-reset-check/", ResetPasswordCheckView.as_view()),
-    path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
+    # path("password-reset-check/", ResetPasswordCheckView.as_view()),
+    # path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
 ]
 urlpatterns = [
     path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
