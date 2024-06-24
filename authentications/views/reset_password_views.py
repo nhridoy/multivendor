@@ -1,20 +1,171 @@
 import json
 
-from django.contrib.auth import get_user_model
+from dj_rest_auth.jwt_auth import unset_jwt_cookies
+from django.conf import settings
+from django.contrib.auth import get_user_model, logout, password_validation
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import generics, status, viewsets  # noqa
+from rest_framework import generics, status, viewsets, views, exceptions
 from rest_framework.response import Response
 
 from authentications import models, serializers
+from authentications.permissions import IsAuthenticatedAndEmailVerified
+from authentications.views.helper import generate_link, send_verification_email
 from utils import helper
+from utils.helper import decode_token, decrypt
 
 
 # ============***********============
 # Password reset views
 # ============***********============
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+
+    permission_classes = (IsAuthenticatedAndEmailVerified,)
+    serializer_class = serializers.ChangePasswordSerializer
+
+    @staticmethod
+    def _logout_on_password_change(request):
+        resp = Response(
+            {"detail": "Password updated successfully"},
+            status=status.HTTP_200_OK,
+        )
+        if settings.SIMPLE_JWT.get("SESSION_LOGIN"):
+            logout(request)
+        unset_jwt_cookies(resp)
+        return resp
+
+    def _change_password(self, request, user, password):
+        user.set_password(password)
+        user.save()
+        if settings.LOGOUT_ON_PASSWORD_CHANGE:
+            self._logout_on_password_change(request=request)
+
+        return Response(
+            {"detail": "Password updated successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        password = serializer.validated_data.get("password")
+        return self._change_password(
+            request=request,
+            user=user,
+            password=password,
+        )
+
+
+# reset password
+
+
+class ResetPasswordView(views.APIView):
+    """
+    View for getting email or sms for password reset
+    post: username: ""
+    """
+
+    serializer_class = serializers.ResetPasswordSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    # throttle_classes = (AnonUserRateThrottle,)
+
+    @staticmethod
+    def email_sender_helper(user, origin):
+        url = generate_link(user, origin, "reset-password")
+        send_verification_email(user, url)
+
+        return Response({"detail": "Email Sent", "is_email": True})
+
+    def post(self, *args, **kwargs):
+        try:
+            origin = self.request.headers["origin"]
+        except Exception as e:
+            raise exceptions.PermissionDenied(
+                detail="Origin not found on request header"
+            ) from e
+        ser = self.serializer_class(data=self.request.data)
+        ser.is_valid(raise_exception=True)
+        user = ser.user
+
+        if user.email:
+            return self.email_sender_helper(user, origin)
+
+        raise exceptions.PermissionDenied(
+            detail="No Email found!!!",
+        )
+
+
+class ResetPasswordCheckView(views.APIView):
+    """
+    View for checking if the url is expired or not
+    post: token: ""
+    """
+
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = serializers.ResetPasswordCheckSerializer
+
+    def post(self, *args, **kwargs):
+        ser = self.serializer_class(data=self.request.data)
+        ser.is_valid(raise_exception=True)
+
+        try:
+            decode_token(token=decrypt(str(ser.data.get("token"))))
+
+        except Exception as e:
+            raise exceptions.APIException(detail=e) from e
+        return Response({"data": "Accepted"})
+
+
+class ResetPasswordConfirmView(views.APIView):
+    """
+    View for resetting password after checking the token
+    post: token: "", password: ""
+    """
+
+    serializer_class = serializers.ResetPasswordConfirmSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, *args, **kwargs):
+        ser = self.serializer_class(data=self.request.data)
+        ser.is_valid(raise_exception=True)
+
+        try:
+            return self._change_password(ser)
+        except Exception as e:
+            raise exceptions.APIException(detail=e) from e
+
+    @staticmethod
+    def _change_password(ser):
+        decoded = decode_token(token=decrypt(str(ser.data.get("token"))))
+
+        if ser.validated_data.get("password") != ser.validated_data.get(
+            "retype_password"
+        ):
+            raise exceptions.NotAcceptable(detail="Passwords doesn't match!!!")
+
+        user = models.User.objects.get(id=decoded.get("user"))
+        password_validation.validate_password(
+            password=ser.data.get("password"), user=user
+        )
+        user.set_password(ser.data.get("password"))
+        user.save()
+        return Response({"detail": "Password Changed Successfully"})
+
+
+
 class PasswordResetView(generics.GenericAPIView):
     serializer_class = serializers.ResetPasswordSerializer
     permission_classes = []
