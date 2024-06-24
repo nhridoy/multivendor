@@ -2,7 +2,7 @@ from autoslug import AutoSlugField
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from core.models import BaseModel, CompressedImageField
+from core.models import BaseModel
 from utils.helper import content_file_path
 
 

@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from tinymce.models import HTMLField
 
-from core.models import BaseModel, CompressedImageField
+from core.models import BaseModel
 from utils.helper import content_file_path
 
 # Create your models here.

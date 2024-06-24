@@ -17,8 +17,10 @@ daphne==4.1.0
 dj-rest-auth==6.0.0
 Django==5.0.3
 django-autoslug==1.9.9
+django-cors-headers==4.4.0
 django-debug-toolbar==4.4.2
 django-decouple==2.1
+django-filter==24.2
 django-redis==5.4.0
 django-tinymce==4.1.0
 djangorestframework==3.15.1

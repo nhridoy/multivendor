@@ -35,7 +35,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Library packages
+    "corsheaders",
     "rest_framework",
+    "django_filters",
     "rest_framework.authtoken",
     "drf_spectacular",
     "fcm_django",  # Firebase Cloud Messaging For push notifications
