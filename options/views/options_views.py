@@ -41,12 +41,10 @@ class OptionsListView(views.APIView):
         )
 
 
-
 class LanguageView(viewsets.ModelViewSet):
     permission_classes = (IsAdmin,)
     queryset = Language.objects.all()
     serializer_class = LanguageCreateSerializer
-
 
 
 class ProvinceView(viewsets.ModelViewSet):
