@@ -2,10 +2,35 @@ from dj_rest_auth.jwt_auth import unset_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import logout, password_validation
 from django.shortcuts import redirect
-from rest_framework import exceptions, generics, permissions, response, status
+from rest_framework import exceptions, generics, permissions, response, status, views
 
 from authentications import serializers
 from authentications.permissions import IsAuthenticatedAndEmailVerified
+
+
+class PasswordValidateView(views.APIView):
+    """
+    View for validating password
+    """
+
+    permission_classes = (IsAuthenticatedAndEmailVerified,)
+    serializer_class = serializers.PasswordValidateSerializer
+
+    def post(self, request, *args, **kwargs):
+        current_user = self.request.user
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if current_user.check_password(
+                serializer.validated_data.get("password"),
+        ):
+            return response.Response(
+                {"data": "Password Accepted"}, status=status.HTTP_200_OK
+            )
+        return response.Response(
+            {"data": "Wrong Password"},
+            status=status.HTTP_406_NOT_ACCEPTABLE,
+        )
 
 
 class ChangePasswordView(generics.UpdateAPIView):
