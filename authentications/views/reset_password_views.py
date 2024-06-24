@@ -20,54 +20,6 @@ from utils.helper import decode_token, decrypt
 # ============***********============
 # Password reset views
 # ============***********============
-
-class ChangePasswordView(generics.UpdateAPIView):
-    """
-    An endpoint for changing password.
-    """
-
-    permission_classes = (IsAuthenticatedAndEmailVerified,)
-    serializer_class = serializers.ChangePasswordSerializer
-
-    @staticmethod
-    def _logout_on_password_change(request):
-        resp = Response(
-            {"detail": "Password updated successfully"},
-            status=status.HTTP_200_OK,
-        )
-        if settings.SIMPLE_JWT.get("SESSION_LOGIN"):
-            logout(request)
-        unset_jwt_cookies(resp)
-        return resp
-
-    def _change_password(self, request, user, password):
-        user.set_password(password)
-        user.save()
-        if settings.LOGOUT_ON_PASSWORD_CHANGE:
-            self._logout_on_password_change(request=request)
-
-        return Response(
-            {"detail": "Password updated successfully"},
-            status=status.HTTP_200_OK,
-        )
-
-    def update(self, request, *args, **kwargs):
-        user = self.request.user
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        password = serializer.validated_data.get("password")
-        return self._change_password(
-            request=request,
-            user=user,
-            password=password,
-        )
-
-
-# reset password
-
-
 class ResetPasswordView(views.APIView):
     """
     View for getting email or sms for password reset
