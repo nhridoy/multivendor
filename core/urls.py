@@ -29,8 +29,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("authentications.urls")),
     # app urls
-    path("api/notices/", include("notice.urls")),
-    path("api/notifications/", include("notifications.urls")),
     path("api/articles/", include("article.urls")),
     path("api/forum/", include("forum.urls")),
     path("api/options/", include("options.urls")),

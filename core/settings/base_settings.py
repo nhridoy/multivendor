@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     # created apps
     "authentications",
     "chat",
-    "notice",
-    "notifications",
     "article",
     "forum",
     "support",
