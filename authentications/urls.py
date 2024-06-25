@@ -9,9 +9,9 @@ from rest_framework_simplejwt.views import (
 from authentications.views import (
     AppleLoginView,
     ChangePasswordView,
-    CustomTokenObtainPairView,
     GoogleLoginView,
     KakaoLoginView,
+    LoginView,
     LogoutView,
     MyTokenRefreshView,
     NewUserView,
@@ -53,15 +53,15 @@ password_urls = [
     ),
 ]
 login_urls = [
-    path("login/", CustomTokenObtainPairView.as_view(), name="login"),
+    path("login/", LoginView.as_view(), name="login"),
     path("otp-login/", OTPLoginView.as_view(), name="otp-login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("token/refresh/", MyTokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
 ]
 otp_urls = [
-    path("otp-check/", OTPCheckView.as_view()),
-    path("otp/", OTPView.as_view()),
+    path("otp-check/", OTPCheckView.as_view(), name="otp-check"),
+    path("otp/", OTPView.as_view(), name="otp"),
 ]
 signup_urls = []
 social_urls = [

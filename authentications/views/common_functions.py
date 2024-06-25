@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentications.models import User
-from utils.helper import decode_token, decrypt, encode_token, encrypt
+from utils.helper import encode_token, encrypt
 from utils.modules import EmailSender
 from utils.modules.solapi_sms import SolApiClient
 
@@ -36,7 +36,9 @@ def direct_login(request, user: User, token_data):
     return resp
 
 
-def generate_and_send_otp(user: User, otp_method: Literal["sms", "email"]):
+def generate_and_send_otp(
+    user: User, otp_method: Literal["sms", "email"], generate_secret: bool = False
+):
     otp = TOTP(user.user_two_step_verification.secret_key, interval=300)
 
     otp_code = otp.now()
@@ -50,6 +52,7 @@ def generate_and_send_otp(user: User, otp_method: Literal["sms", "email"]):
     return Response(
         {
             "data": {
+                "secret": generate_token(user) if generate_secret else None,
                 "otp_method": otp_method,
                 "detail": "OTP is active for 300 seconds",
             },

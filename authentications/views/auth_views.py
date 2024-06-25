@@ -1,6 +1,6 @@
 import contextlib
+from typing import Any
 
-import fernet
 from dj_rest_auth.jwt_auth import (
     set_jwt_access_cookie,
     set_jwt_refresh_cookie,
@@ -8,65 +8,61 @@ from dj_rest_auth.jwt_auth import (
 )
 from django.conf import settings
 from django.contrib.auth import logout
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ObjectDoesNotExist
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
-from pyotp import HOTP, TOTP
+from pyotp import TOTP
 from rest_framework import exceptions, generics, permissions, status, views
 from rest_framework.response import Response
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from authentications.models import User, UserTwoStepVerification
-from authentications.serializers import (  # TokenRefreshSerializer
-    CustomTokenObtainPairSerializer,
+from authentications.models import User
+from authentications.serializers import (
+    LoginSerializer,
+    OTPLoginSerializer,
     OTPSerializer,
 )
 from core.settings import PROJECT_NAME
 from utils.extensions import validate_query_params
 from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
-from utils.helper import decode_token, decrypt
 
-from .common_functions import direct_login, generate_and_send_otp, get_token
+from .common_functions import (
+    direct_login,
+    generate_and_send_otp,
+    generate_token,
+    get_token,
+)
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class LoginView(TokenObtainPairView):
+    serializer_class = LoginSerializer
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                "otp_method",
-                type={"type": "string"},
-                enum=["authenticator_app", "email", "sms"],
-                default="authenticator_app",
-                style="form",
-                explode=False,
-                required=False,
-            )
-        ]
-    )
+    @staticmethod
+    def _authenticator_login(user):
+        """
+        Method for returning secret key if OTP is active for user
+        """
+        secret = generate_token(user)
+        return Response(
+            {"secret": secret},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            user: User = serializer.validated_data[1]
-            if user.user_two_step_verification.is_active:
-                otp_method = request.query_params.get("otp_method", "authenticator_app")
-                print(otp_method)
-                return generate_and_send_otp(user)
+
+        user: User = serializer.validated_data[1]
+        if user.user_two_step_verification.is_active:
+            otp_method: Any = user.user_two_step_verification.otp_method
+            if otp_method == "authenticator_app":
+                return self._authenticator_login(user)
             else:
-                return direct_login(request, user, serializer.validated_data[0])
-
-        except exceptions.AuthenticationFailed as e:
-            raise exceptions.AuthenticationFailed(
-                detail="Invalid username or password"
-            ) from e
-
-        except AssertionError as e:
-            raise exceptions.APIException(detail=str(e))
+                return generate_and_send_otp(user, otp_method, True)
+        else:
+            return direct_login(request, user, serializer.validated_data[0])
 
 
 class MyTokenRefreshView(generics.GenericAPIView):
@@ -194,51 +190,29 @@ class LogoutView(views.APIView):
         return resp
 
 
-class OTPLoginView(views.APIView):
-    serializer_class = OTPSerializer
+class OTPLoginView(generics.GenericAPIView):
+    serializer_class = OTPLoginSerializer
     permission_classes = []
     authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        user = serializer.user
 
-        try:
-            secret = decode_token(decrypt(serializer.validated_data.get("secret")))
-            otp = serializer.validated_data.get("otp")
-            rand = int(secret.get("rand"))
-
-            user: User = generics.get_object_or_404(User, id=secret.get("user"))
-            hotp = HOTP(user.user_two_step_verification.secret_key)
-
-            if hotp.verify(otp, rand):
-                token = get_token(user)
-                return direct_login(
-                    request,
-                    user,
-                    {
-                        settings.REST_AUTH.get(
-                            "JWT_AUTH_REFRESH_COOKIE", "refresh"
-                        ): str(token),
-                        settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
-                            token.access_token
-                        ),
-                    },
-                )
-            else:
-                raise ExpiredSignatureError("Wrong OTP")
-        except ExpiredSignatureError as e:
-            raise exceptions.AuthenticationFailed(detail=str(e)) from e
-        except fernet.InvalidToken as e:
-            raise InvalidToken(detail=str(e)) from e
-        except DecodeError as e:
-            raise InvalidToken(detail="Wrong Secret") from e
-        except InvalidTokenError as e:
-            raise exceptions.AuthenticationFailed(detail=str(e)) from e
-        except TokenError as e:
-            raise exceptions.AuthenticationFailed(detail=str(e)) from e
-        except ValidationError as e:
-            raise exceptions.APIException(detail="Validation error") from e
+        token = get_token(user)
+        return direct_login(
+            request,
+            user,
+            {
+                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
+                    token
+                ),
+                settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
+                    token.access_token
+                ),
+            },
+        )
 
 
 class OTPCheckView(views.APIView):
