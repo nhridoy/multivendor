@@ -7,8 +7,11 @@ from rest_framework_simplejwt.views import (
 )
 
 from authentications.views import (
+    AppleLoginView,
     ChangePasswordView,
     CustomTokenObtainPairView,
+    GoogleLoginView,
+    KakaoLoginView,
     NewUserView,
     PasswordValidateView,
 )
@@ -26,11 +29,6 @@ password_urls = [
     path("password-reset/", ResetPasswordView.as_view()),
     # path("password-reset-check/", ResetPasswordCheckView.as_view()),
     # path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
-]
-urlpatterns = [
-    path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("password-change/", ChangePasswordView.as_view(), name="change_password"),
     # reset password
     path(
@@ -49,4 +47,20 @@ urlpatterns = [
         name="reset-password",
     ),
 ]
+login_urls = [
+    path("login/", CustomTokenObtainPairView.as_view(), name="login"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+]
+signup_urls = []
+social_urls = [
+    path("google/", GoogleLoginView.as_view()),
+    path("kakao/", KakaoLoginView.as_view()),
+    path("apple/", AppleLoginView.as_view()),
+]
+urlpatterns = []
 urlpatterns += router.urls
+urlpatterns += login_urls
+urlpatterns += signup_urls
+urlpatterns += password_urls
+urlpatterns += social_urls
