@@ -1,6 +1,6 @@
 import os
 
-from .base_settings import DEBUG
+from .base_settings import DEBUG, PROJECT_NAME
 
 # -------------------------------------
 # EMAIL: configurations
@@ -16,5 +16,5 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL") == "True"
 DEFAULT_FROM_EMAIL = os.getenv(
-    "DEFAULT_FROM_EMAIL", default=f"Potential <{EMAIL_HOST_USER}>"
+    "DEFAULT_FROM_EMAIL", default=f"{PROJECT_NAME} <{EMAIL_HOST_USER}>"
 )

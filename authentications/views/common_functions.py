@@ -1,6 +1,6 @@
 import datetime
 import random
-
+from typing import Literal
 from dj_rest_auth.jwt_auth import set_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import login
@@ -35,23 +35,19 @@ def direct_login(request, user: User, token_data):
     return resp
 
 
-def otp_login(user: User):
+def generate_and_send_otp(user: User, otp_method: Literal['sms', 'email']):
     otp = TOTP(user.user_two_step_verification.secret_key, interval=300)
 
-    payload = {
-        "type": "otp",
-        "user": str(user.id),
-        "exp": datetime.datetime.now(datetime.timezone.utc)
-        + datetime.timedelta(minutes=5),
-    }
-
-    token = encrypt(encode_token(payload))
     otp_code = otp.now()
-    # email send for otp code
-    send_otp_email(user, otp_code)
+    if otp_method == "sms":
+        # sms send for otp code
+        send_verification_sms(user.user_information.phone_number, otp_code)
+    elif otp_method == "email":
+        # email send for otp code
+        send_otp_email(user, otp_code)
 
     return Response(
-        {"secret": token.decode(), "detail": "OTP is Sent"}, status=status.HTTP_200_OK
+        {"data": {"otp_method": otp_method, "detail": "OTP is active for 300 seconds"}, "message": "OTP is Sent"}, status=status.HTTP_200_OK
     )
 
 
@@ -81,7 +77,7 @@ def generate_otp(user: User):
 
 
 def send_otp_email(user, otp):
-    body = f"Your OTP code is {otp}"
+    body = f"One time verification code is {otp}"
     email = EmailSender(send_to=[user.email], subject="OTP Verification", body=body)
     email.send_email()
 
@@ -93,7 +89,7 @@ def send_verification_email(user, link):
 
 
 def send_verification_sms(phone_number, code):
-    body = f"Your Verification code is {code}"
+    body = f"One time verification code is {code}"
     solapi = SolApiClient()
     solapi.send_one(phone_number, body)
     # solapi.get_balance()

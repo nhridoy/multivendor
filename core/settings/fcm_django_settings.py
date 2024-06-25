@@ -1,5 +1,7 @@
 from firebase_admin import initialize_app
 
+from .base_settings import PROJECT_NAME
+
 # -------------------------------------
 # FIREBASE: Configurations
 # -------------------------------------
@@ -9,7 +11,7 @@ FCM_DJANGO_SETTINGS = {
     # default: None (the default Firebase app)
     "DEFAULT_FIREBASE_APP": None,
     # default: _('FCM Django')
-    "APP_VERBOSE_NAME": "[Potential]",
+    "APP_VERBOSE_NAME": f"[{PROJECT_NAME}]",
     # true if you want to have only one active device per registered user at a time
     # default: False
     "ONE_DEVICE_PER_USER": False,

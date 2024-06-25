@@ -9,9 +9,9 @@ from dj_rest_auth.jwt_auth import (
 from django.conf import settings
 from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
-from pyotp import HOTP
+from pyotp import HOTP, TOTP
 from rest_framework import exceptions, generics, permissions, status, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -24,10 +24,12 @@ from authentications.serializers import (  # TokenRefreshSerializer
     CustomTokenObtainPairSerializer,
     OTPSerializer,
 )
+from core.settings import PROJECT_NAME
+from utils.extensions import validate_query_params
 from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 from utils.helper import decode_token, decrypt
 
-from .helper import direct_login, get_token, otp_login
+from .common_functions import direct_login, generate_and_send_otp, get_token
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -52,7 +54,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         try:
             user: User = serializer.validated_data[1]
             if user.user_two_step_verification.is_active:
-                return otp_login(user)
+                otp_method = request.query_params.get("otp_method", "authenticator_app")
+                print(otp_method)
+                return generate_and_send_otp(user)
             else:
                 return direct_login(request, user, serializer.validated_data[0])
 
@@ -77,7 +81,7 @@ class MyTokenRefreshView(generics.GenericAPIView):
     @staticmethod
     def _set_cookie(resp, serializer):
         if refresh := serializer.validated_data.get(
-                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
+            settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
         ):  # noqa
             set_jwt_refresh_cookie(
                 response=resp,
@@ -166,8 +170,8 @@ class LogoutView(views.APIView):
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, "args"):
                         if (
-                                "Token is blacklisted" in error.args
-                                or "Token is invalid or expired" in error.args
+                            "Token is blacklisted" in error.args
+                            or "Token is invalid or expired" in error.args
                         ):
                             resp.data = {"detail": error.args[0]}
                             resp.status_code = status.HTTP_401_UNAUTHORIZED
@@ -274,10 +278,39 @@ class OTPView(generics.GenericAPIView):
     @staticmethod
     def _clear_user_otp(user_otp):
         user_otp.is_active = False
-        user_otp.save(update_fields=["is_active"])
+        user_otp.otp_method = "___"
+        user_otp.save(update_fields=["is_active", "otp_method"])
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "otp_method",
+                type={"type": "string"},
+                enum=["authenticator_app", "email", "sms"],
+                default="authenticator_app",
+                style="form",
+                explode=False,
+                required=True,
+            )
+        ]
+    )
+    @validate_query_params("otp_method", ["authenticator_app", "email", "sms"])
     def get(self, request, *args, **kwargs):
-        return otp_login(self.request.user)
+        if (otp_method := request.query_params.get("otp_method", "authenticator_app")) == "authenticator_app":
+            otp = TOTP(self.request.user.user_two_step_verification.secret_key)
+            return Response(
+                {
+                    "data": {
+                        "qr_code": otp.provisioning_uri(
+                            self.request.user.email, issuer_name=PROJECT_NAME
+                        ),
+                        "otp_method": otp_method,
+                    },
+                    "message": "QR Code is generated",
+                }
+            )
+        else:
+            return generate_and_send_otp(self.request.user, otp_method)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -288,7 +321,8 @@ class OTPView(generics.GenericAPIView):
             raise exceptions.ValidationError(serializer.errors)
 
         user_otp.is_active = True
-        user_otp.save(update_fields=["is_active"])
+        user_otp.otp_method = serializer.validated_data.get("otp_method")
+        user_otp.save(update_fields=["is_active", "otp_method"])
         return Response(
             {
                 "data": {"detail": "OTP is activated"},

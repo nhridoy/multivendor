@@ -136,11 +136,21 @@ class UserInformation(BaseModel):
 
 
 class UserTwoStepVerification(BaseModel):
+    OTP_METHOD = (
+        ("___", "___"),  # default value
+        ("email", "email"),
+        ("sms", "sms"),
+        (
+            "authenticator_app",
+            "authenticator_app",
+        ),  # Google Authenticator, Microsoft Authenticator, Authy, etc.
+    )
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user_two_step_verification"
     )
-    is_active = models.BooleanField(default=False)
     secret_key = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=False)
+    otp_method = models.CharField(choices=OTP_METHOD, max_length=20, default="___")
 
     def __str__(self):
         return self.user.username

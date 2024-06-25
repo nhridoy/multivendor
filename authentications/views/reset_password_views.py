@@ -11,7 +11,7 @@ from rest_framework import exceptions, generics, status, views, viewsets
 from rest_framework.response import Response
 
 from authentications import models, serializers
-from authentications.views.helper import (
+from authentications.views.common_functions import (
     generate_link,
     generate_otp,
     generate_token,

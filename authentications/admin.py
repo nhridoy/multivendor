@@ -127,6 +127,7 @@ class AdminOTPModel(admin.ModelAdmin):
     list_display = (
         "user",
         "is_active",
+        "otp_method",
         "updated_at",
     )
     search_fields = (
