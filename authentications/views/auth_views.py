@@ -21,7 +21,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from authentications.models import User, UserTwoStepVerification
 from authentications.serializers import (  # TokenRefreshSerializer
     CustomTokenObtainPairSerializer,
-    OTPCheckSerializer,
     OTPSerializer,
 )
 from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
@@ -230,25 +229,20 @@ class OTPCheckView(views.APIView):
     """
 
     permission_classes = (IsAuthenticatedAndEmailVerified,)
-    serializer_class = OTPCheckSerializer
 
     def get(self, request, *args, **kwargs):
         try:
-            user_otp = generics.get_object_or_404(
-                UserTwoStepVerification, user=self.request.user
-            )
-            serializer = self.serializer_class(user_otp)
             return Response(
                 {
-                    "data": [serializer.data.get("is_active")],
-                    "detail": serializer.data.get("is_active"),
+                    "data": [self.request.user.user_two_step_verification.is_active],
+                    "detail": self.request.user.user_two_step_verification.is_active,
                 }
             )
         except Exception as e:
             raise exceptions.APIException from e
 
 
-class OTPView(views.APIView):
+class OTPView(generics.GenericAPIView):
     """
     Get method for OTP Create
     Post method for OTP verify
@@ -258,6 +252,7 @@ class OTPView(views.APIView):
     permission_classes = (IsAuthenticatedAndEmailVerified,)
 
     # serializer_class = serializers.OTPCreateSerializer
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return OTPSerializer
@@ -265,41 +260,30 @@ class OTPView(views.APIView):
     @staticmethod
     def _clear_user_otp(user_otp):
         user_otp.is_active = False
-        user_otp.save()
+        user_otp.save(update_fields=["is_active"])
 
     def get(self, request, *args, **kwargs):
         return otp_login(self.request.user)
 
     def post(self, request, *args, **kwargs):
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            secret = decode_token(decrypt(serializer.validated_data.get("secret")))
-            user_otp = self.request.user.user_two_step_verification
-            hotp = HOTP(user_otp.secret_key)
-            if hotp.verify(
-                serializer.validated_data.get("otp"), int(secret.get("rand"))
-            ):
-                user_otp.is_active = True
-                user_otp.save()
-                return Response(
-                    {
-                        "data": {"detail": "OTP is activated"},
-                        "message": "OTP is activated",
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            else:
-                self._clear_user_otp(user_otp)
-                raise exceptions.NotAcceptable(detail="OTP is Wrong or Expired!!!")
-        except fernet.InvalidToken as e:
-            raise InvalidToken(detail=str(e)) from e
-        except ExpiredSignatureError as e:
-            raise exceptions.AuthenticationFailed(detail=str(e)) from e
+        serializer = self.get_serializer(data=request.data)
+        user_otp = self.request.user.user_two_step_verification
+
+        if not serializer.is_valid():
+            self._clear_user_otp(user_otp)
+            raise exceptions.ValidationError(serializer.errors)
+
+        user_otp.is_active = True
+        user_otp.save(update_fields=["is_active"])
+        return Response(
+            {
+                "data": {"detail": "OTP is activated"},
+                "message": "OTP is activated",
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request, *args, **kwargs):
-        current_user = self.request.user
-        user_otp = UserTwoStepVerification.objects.get(user=current_user)
+        user_otp = self.request.user.user_two_step_verification
         self._clear_user_otp(user_otp)
         return Response({"data": {"detail": "OTP Removed"}, "message": "OTP Removed"})

@@ -52,7 +52,7 @@ def otp_login(user: User):
     send_otp_email(user, otp_code)
 
     return Response(
-        {"data": token.decode(), "detail": "OTP is Sent"}, status=status.HTTP_200_OK
+        {"secret": token.decode(), "detail": "OTP is Sent"}, status=status.HTTP_200_OK
     )
 
 

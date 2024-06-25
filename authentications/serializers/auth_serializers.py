@@ -1,9 +1,12 @@
+from cryptography.fernet import InvalidToken as FernetInvalidToken
 from django.conf import settings
 from django.contrib.auth.models import update_last_login
+from jwt import ExpiredSignatureError
+from pyotp import HOTP
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from authentications.models import UserTwoStepVerification
+from utils.helper import decode_token, decrypt
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -29,17 +32,28 @@ class OTPSerializer(serializers.Serializer):
     secret = serializers.CharField(write_only=True)
     otp = serializers.CharField(write_only=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payload = None
 
-class OTPCheckSerializer(serializers.ModelSerializer):
-    """
-    Serializer for checking if OTP is active or not
-    """
+    def validate_secret(self, value):
+        try:
+            self.payload = decode_token(decrypt(value))
+        except FernetInvalidToken as e:
+            raise serializers.ValidationError("Invalid OTP Secret") from e
+        except ExpiredSignatureError as e:
+            raise serializers.ValidationError("OTP Secret Expired") from e
+        return value
 
-    # detail = serializers.BooleanField(read_only=True)
+    def validate_otp(self, value):
+        if not bool(self.payload):
+            raise serializers.ValidationError("OTP Secret must be validated first")
 
-    class Meta:
-        model = UserTwoStepVerification
-        fields = ["is_active"]
+        request = self.context.get("request")
+        otp = HOTP(request.user.user_two_step_verification.secret_key)
+        if not otp.verify(value, self.payload.get("rand")):
+            raise serializers.ValidationError("Invalid OTP")
+        return value
 
 
 class LogoutSerializer(serializers.Serializer):

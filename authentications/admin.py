@@ -123,7 +123,12 @@ class AdminUserInformation(admin.ModelAdmin):
 
 class AdminOTPModel(admin.ModelAdmin):
     autocomplete_fields = ("user",)
-    exclude = ("is_active",)
+    # exclude = ("is_active",)
+    list_display = (
+        "user",
+        "is_active",
+        "updated_at",
+    )
     search_fields = (
         "user__username",
         "user__email",
