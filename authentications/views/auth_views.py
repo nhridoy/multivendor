@@ -9,6 +9,7 @@ from dj_rest_auth.jwt_auth import (
 from django.conf import settings
 from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
 from pyotp import HOTP
 from rest_framework import exceptions, generics, permissions, status, views
@@ -32,6 +33,19 @@ from .helper import direct_login, get_token, otp_login
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "otp_method",
+                type={"type": "string"},
+                enum=["authenticator_app", "email", "sms"],
+                default="authenticator_app",
+                style="form",
+                explode=False,
+                required=False,
+            )
+        ]
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -63,7 +77,7 @@ class MyTokenRefreshView(generics.GenericAPIView):
     @staticmethod
     def _set_cookie(resp, serializer):
         if refresh := serializer.validated_data.get(
-            settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
+                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
         ):  # noqa
             set_jwt_refresh_cookie(
                 response=resp,
@@ -152,8 +166,8 @@ class LogoutView(views.APIView):
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, "args"):
                         if (
-                            "Token is blacklisted" in error.args
-                            or "Token is invalid or expired" in error.args
+                                "Token is blacklisted" in error.args
+                                or "Token is invalid or expired" in error.args
                         ):
                             resp.data = {"detail": error.args[0]}
                             resp.status_code = status.HTTP_401_UNAUTHORIZED

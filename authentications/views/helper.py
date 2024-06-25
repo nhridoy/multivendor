@@ -4,7 +4,7 @@ import random
 from dj_rest_auth.jwt_auth import set_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import login
-from pyotp import HOTP
+from pyotp import TOTP
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -36,18 +36,17 @@ def direct_login(request, user: User, token_data):
 
 
 def otp_login(user: User):
-    otp = HOTP(user.user_two_step_verification.secret_key)
-    rand = random.randint(0, 999999)
+    otp = TOTP(user.user_two_step_verification.secret_key, interval=300)
+
     payload = {
         "type": "otp",
         "user": str(user.id),
         "exp": datetime.datetime.now(datetime.timezone.utc)
         + datetime.timedelta(minutes=5),
-        "rand": rand,
     }
 
     token = encrypt(encode_token(payload))
-    otp_code = otp.at(rand)
+    otp_code = otp.now()
     # email send for otp code
     send_otp_email(user, otp_code)
 
