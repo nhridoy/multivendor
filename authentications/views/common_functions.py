@@ -1,6 +1,7 @@
 import datetime
 import random
 from typing import Literal
+
 from dj_rest_auth.jwt_auth import set_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import login
@@ -35,7 +36,7 @@ def direct_login(request, user: User, token_data):
     return resp
 
 
-def generate_and_send_otp(user: User, otp_method: Literal['sms', 'email']):
+def generate_and_send_otp(user: User, otp_method: Literal["sms", "email"]):
     otp = TOTP(user.user_two_step_verification.secret_key, interval=300)
 
     otp_code = otp.now()
@@ -47,7 +48,14 @@ def generate_and_send_otp(user: User, otp_method: Literal['sms', 'email']):
         send_otp_email(user, otp_code)
 
     return Response(
-        {"data": {"otp_method": otp_method, "detail": "OTP is active for 300 seconds"}, "message": "OTP is Sent"}, status=status.HTTP_200_OK
+        {
+            "data": {
+                "otp_method": otp_method,
+                "detail": "OTP is active for 300 seconds",
+            },
+            "message": "OTP is Sent",
+        },
+        status=status.HTTP_200_OK,
     )
 
 

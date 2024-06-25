@@ -296,7 +296,9 @@ class OTPView(generics.GenericAPIView):
     )
     @validate_query_params("otp_method", ["authenticator_app", "email", "sms"])
     def get(self, request, *args, **kwargs):
-        if (otp_method := request.query_params.get("otp_method", "authenticator_app")) == "authenticator_app":
+        if (
+            otp_method := request.query_params.get("otp_method", "authenticator_app")
+        ) == "authenticator_app":
             otp = TOTP(self.request.user.user_two_step_verification.secret_key)
             return Response(
                 {

@@ -38,7 +38,10 @@ class OTPSerializer(serializers.Serializer):
 
     def validate_otp(self, value):
         request = self.context.get("request")
-        if self.initial_data.get("otp_method", "authenticator_app") == "authenticator_app":
+        if (
+            self.initial_data.get("otp_method", "authenticator_app")
+            == "authenticator_app"
+        ):
             otp = TOTP(request.user.user_two_step_verification.secret_key)
             if not otp.verify(value):
                 raise serializers.ValidationError("Invalid OTP")
