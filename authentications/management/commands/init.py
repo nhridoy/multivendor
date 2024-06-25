@@ -3,13 +3,12 @@ import os
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
-from decouple import config
 
 # from users.models import email_superuser
 
-SUPERUSER_USERNAME = config("SUPERUSER_USERNAME")
-SUPERUSER_EMAIL = config("SUPERUSER_EMAIL")
-SUPERUSER_PASSWORD = config("SUPERUSER_PASSWORD")
+SUPERUSER_USERNAME = os.getenv("SUPERUSER_USERNAME")
+SUPERUSER_EMAIL = os.getenv("SUPERUSER_EMAIL")
+SUPERUSER_PASSWORD = os.getenv("SUPERUSER_PASSWORD")
 
 if not SUPERUSER_PASSWORD:
     raise ImproperlyConfigured("'SUPERUSER_PASSWORD' environment variable is unset")
@@ -31,8 +30,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if (
-                not User.objects.filter(username=SUPERUSER_USERNAME).exists()
-                or not User.objects.filter(email=SUPERUSER_EMAIL).exists()
+            not User.objects.filter(username=SUPERUSER_USERNAME).exists()
+            or not User.objects.filter(email=SUPERUSER_EMAIL).exists()
         ):
             User.objects.create_superuser(
                 username=SUPERUSER_USERNAME,

@@ -14,8 +14,10 @@ class JWTAuthMiddleware(BaseMiddleware):
         # jwt_token = params.get("token")
 
         # === get token value from headers===
-        dict_obj = {key.decode("utf-8"): value.decode("utf-8") for key, value in
-                    scope['headers']}  # decode bytes to string
+        dict_obj = {
+            key.decode("utf-8"): value.decode("utf-8")
+            for key, value in scope["headers"]
+        }  # decode bytes to string
         jwt_token = dict_obj.get("token")
         if jwt_token:
             try:

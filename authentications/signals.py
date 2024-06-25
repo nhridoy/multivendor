@@ -9,7 +9,9 @@ from authentications.models import User, UserInformation, UserTwoStepVerificatio
 def create_user_instance(sender, instance, created, **kwargs):
     if created:
         # user two-step verification and user information instance creation
-        UserTwoStepVerification.objects.create(user=instance, secret_key=pyotp.random_base32())
+        UserTwoStepVerification.objects.create(
+            user=instance, secret_key=pyotp.random_base32()
+        )
         UserInformation.objects.create(
             user=instance,
         )

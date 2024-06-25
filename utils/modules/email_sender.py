@@ -1,4 +1,4 @@
-from django.core.mail import EmailMultiAlternatives, EmailMessage, send_mail
+from django.core.mail import EmailMessage, EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
@@ -15,9 +15,19 @@ class EmailSender:
     context: dict
     attachments: list
 
-    def __init__(self, subject='', body='', send_to=None, bcc=None, cc=None, reply_to=None, context=None, template=None,
-                 attachments=None,
-                 email_from=None):
+    def __init__(
+        self,
+        subject="",
+        body="",
+        send_to=None,
+        bcc=None,
+        cc=None,
+        reply_to=None,
+        context=None,
+        template=None,
+        attachments=None,
+        email_from=None,
+    ):
         self.subject = subject
         self.send_to = send_to
         self.email_from = email_from
@@ -60,7 +70,6 @@ class EmailSender:
             cc=self.cc,
             reply_to=self.reply_to,
             attachments=self.attachments,
-
         )
 
         message.attach_alternative(html_message, "text/html")

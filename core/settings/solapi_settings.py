@@ -1,0 +1,4 @@
+import os
+
+SOLAPI_API_KEY = os.getenv("SOLAPI_API_KEY")
+SOLAPI_API_SECRET = os.getenv("SOLAPI_API_SECRET")

@@ -5,8 +5,10 @@ from datetime import datetime
 from django.core.validators import RegexValidator
 
 # phone number validate
-phone_validator = RegexValidator(r"^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$",
-                                 "The phone number provided is invalid")
+phone_validator = RegexValidator(
+    r"^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$",
+    "The phone number provided is invalid",
+)
 
 
 def content_file_path(instance, filename):

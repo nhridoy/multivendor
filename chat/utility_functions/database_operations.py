@@ -1,8 +1,8 @@
 #  get group informations
 from channels.db import database_sync_to_async
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
-from chat.models import ChatSession, ChatLog
+from chat.models import ChatLog, ChatSession
 
 
 @database_sync_to_async
@@ -16,8 +16,9 @@ def get_chat_session(room_id, participant: list = None):
 @database_sync_to_async
 def get_chat_session_history(room_id, page_number=1, page_size=20):
     try:
-        chat_session = ChatSession.objects.prefetch_related('chat_messages_session',
-                                                            'chat_messages_session__user').get(room_id=room_id)
+        chat_session = ChatSession.objects.prefetch_related(
+            "chat_messages_session", "chat_messages_session__user"
+        ).get(room_id=room_id)
         chat_logs = chat_session.chat_messages_session.all()
 
         # Paginate the query results

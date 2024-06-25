@@ -2,9 +2,12 @@ import json
 
 import pyotp
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db.models import Q
 from django.utils.http import urlsafe_base64_decode
-from rest_framework import serializers
+from rest_framework import serializers, validators
+
 from authentications.models import User
 from utils import helper
 
@@ -42,19 +45,69 @@ class ChangePasswordSerializer(serializers.Serializer):
         required=True,
     )
 
+    def validate(self, attrs):
+        user = self.context["request"].user
+        if not user.check_password(attrs["old_password"]):
+            raise serializers.ValidationError(
+                {"old_password": "You have entered Wrong password."}
+            )
+        if attrs["password"] != attrs["retype_password"]:
+            raise serializers.ValidationError(
+                {"retype_password": "The two password fields didn't match."}
+            )
+        password_validation.validate_password(password=attrs["password"], user=user)
+
+        return attrs
+
 
 # ============***********============
 # Password reset serializer
 # ============***********============
-class EmailSerializer(serializers.Serializer):
+class ResetPasswordSerializer(serializers.Serializer):
     """
-    Reset Password Email Request Serializer.
+    Reset Password Request Serializer
     """
 
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(required=True)
+
+    def validate_username(self, value):
+        try:
+            self.user = User.objects.get(Q(email=value) | Q(username=value))
+        except User.DoesNotExist as e:
+            raise validators.ValidationError(
+                detail="Wrong Username/Email/Phone Number"
+            ) from e
+        return value
+
+
+class ResetPasswordCheckSerializer(serializers.Serializer):
+    """
+    Serializer for reset-password-check api view
+    """
+
+    token = serializers.CharField(required=True)
 
     class Meta:
-        fields = ("email",)
+        fields = "__all__"
+
+
+class ResetPasswordConfirmSerializer(serializers.Serializer):
+    """
+    Reset Password Confirm Serializer
+    """
+
+    token = serializers.CharField(required=True)
+    password = serializers.CharField(
+        style={"input_type": "password"},
+        # write_only=True,
+        required=True,
+        validators=[password_validation.validate_password],
+    )
+    retype_password = serializers.CharField(
+        style={"input_type": "password"},
+        # write_only=True,
+        required=True,
+    )
 
 
 # ============***********============

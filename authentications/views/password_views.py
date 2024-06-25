@@ -1,14 +1,36 @@
+from dj_rest_auth.jwt_auth import unset_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import logout, password_validation
 from django.shortcuts import redirect
-from rest_framework import (
-    exceptions,
-    generics,
-    permissions,
-    response,
-    status,
-)
+from rest_framework import exceptions, generics, permissions, response, status, views
+
 from authentications import serializers
+from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
+
+
+class PasswordValidateView(views.APIView):
+    """
+    View for validating password
+    """
+
+    permission_classes = (IsAuthenticatedAndEmailVerified,)
+    serializer_class = serializers.PasswordValidateSerializer
+
+    def post(self, request, *args, **kwargs):
+        current_user = self.request.user
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if current_user.check_password(
+            serializer.validated_data.get("password"),
+        ):
+            return response.Response(
+                {"data": "Password Accepted"}, status=status.HTTP_200_OK
+            )
+        return response.Response(
+            {"data": "Wrong Password"},
+            status=status.HTTP_406_NOT_ACCEPTABLE,
+        )
 
 
 class ChangePasswordView(generics.UpdateAPIView):
@@ -16,7 +38,7 @@ class ChangePasswordView(generics.UpdateAPIView):
     An endpoint for changing password.
     """
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = (IsAuthenticatedAndEmailVerified,)
     serializer_class = serializers.ChangePasswordSerializer
 
     @staticmethod
@@ -27,51 +49,32 @@ class ChangePasswordView(generics.UpdateAPIView):
         )
         if settings.REST_SESSION_LOGIN:
             logout(request)
-        redirect("/")
+        unset_jwt_cookies(resp)
         return resp
 
     def _change_password(self, request, user, password):
-        try:
-            password_validation.validate_password(password=password, user=user)
-            user.set_password(password)
-            user.save()
-            print(settings.LOGOUT_ON_PASSWORD_CHANGE)
-            if settings.LOGOUT_ON_PASSWORD_CHANGE:
-                self._logout_on_password_change(request=request)
-            return True
-        except Exception as e:
-            return False
+        user.set_password(password)
+        user.save()
+        if settings.REST_AUTH.get("LOGOUT_ON_PASSWORD_CHANGE"):
+            self._logout_on_password_change(request=request)
+
+        return response.Response(
+            {"detail": "Password updated successfully"},
+            status=status.HTTP_200_OK,
+        )
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # Check old password
-        old_password = serializer.validated_data.get("old_password")
-        if not user.check_password(old_password):
-            return response.Response(
-                {"detail": "You have entered Wrong password."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        # set_password also hashes the password that the user will get
-        password = serializer.validated_data.get("password")
-        retype_password = serializer.validated_data.get("retype_password")
-
-        if password != retype_password:
-            raise exceptions.NotAcceptable(detail="Passwords do not match")
-        if self._change_password(
-                request=request,
-                user=user,
-                password=password,
-        ):
-            return response.Response(
-                {"detail": "Password updated successfully"},
-                status=status.HTTP_200_OK,
-            )
-        return response.Response(
-            {"detail": "Password updated Failed"},
-            status=status.HTTP_403_FORBIDDEN,
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
         )
+        serializer.is_valid(raise_exception=True)
+        password = serializer.validated_data.get("password")
+        return self._change_password(
+            request=request,
+            user=user,
+            password=password,
+        )
+
 
 # reset password

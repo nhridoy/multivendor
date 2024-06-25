@@ -1,0 +1,88 @@
+from autoslug import AutoSlugField
+from django.core.exceptions import ValidationError
+from django.db import models
+
+from core.models import BaseModel
+from utils.helper import content_file_path
+
+
+class Tag(BaseModel):
+    tag_name = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.tag_name
+
+
+class Forum(BaseModel):
+    slug = AutoSlugField(populate_from="title", unique=True)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    author = models.ForeignKey(
+        "authentications.User",
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="forum_author",
+    )
+    province = models.ForeignKey("options.Province", on_delete=models.PROTECT)
+    city = models.ForeignKey("options.City", on_delete=models.PROTECT)
+    tags = models.ManyToManyField(Tag, related_name="tags")
+    total_like = models.PositiveIntegerField(default=0, editable=False)
+    total_comment = models.PositiveIntegerField(default=0, editable=False)
+
+    def __str__(self):
+        return self.title
+
+
+class ForumImage(BaseModel):
+    image = models.ImageField(upload_to=content_file_path)
+    forum = models.ForeignKey(Forum, on_delete=models.CASCADE, related_name="images")
+
+
+class ForumComment(BaseModel):
+    content = models.TextField()
+    image = models.ImageField(upload_to=content_file_path, blank=True, null=True)
+    forum = models.ForeignKey(
+        Forum, on_delete=models.CASCADE, related_name="forum_comments"
+    )
+    parent_comment = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        related_name="replies",
+        null=True,
+        blank=True,
+    )
+    author = models.ForeignKey(
+        "authentications.User",
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="forum_comment_author",
+    )
+
+    def clean(self):
+        errors = {}
+        # Ensure that the parent comment belongs to the same forum
+        if self.parent_comment and self.parent_comment.forum_id != self.forum_id:
+            errors.setdefault("parent_comment", []).append(
+                "Parent comment must belong to the same forum."
+            )
+
+        if errors:
+            raise ValidationError(errors)
+
+    def get_replies(self):
+        return ForumComment.objects.filter(comment=self)
+
+    def __str__(self):
+        return f"Comment by {self.author} on {self.forum}"
+
+
+class ForumLike(BaseModel):
+    forum = models.ForeignKey(
+        Forum, on_delete=models.CASCADE, related_name="forum_like"
+    )
+    author = models.ForeignKey(
+        "authentications.User",
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="forum_like_author",
+    )

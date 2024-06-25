@@ -1,9 +1,7 @@
-from rest_framework import pagination
-from rest_framework.response import Response
-
-from rest_framework.exceptions import APIException
-from rest_framework import status
 from django.utils.translation import gettext_lazy as _
+from rest_framework import pagination, status
+from rest_framework.exceptions import APIException
+from rest_framework.response import Response
 
 
 class NotFoundExtended(APIException):
