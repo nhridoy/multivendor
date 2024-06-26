@@ -18,7 +18,7 @@ from article.serializers import (
     ArticleDetailSerializer,
     ArticleListSerializer,
 )
-from utils.extensions.permissions import IsAdmin, IsAdminOrReadOnly
+from utils.extensions.permissions import IsAdmin, IsAdminOrReadOnly, IsOwnerOrReadOnly
 
 
 class ArticleCategoryView(viewsets.ModelViewSet):
@@ -112,7 +112,7 @@ class ArticleLikeView(views.APIView):
 
 
 class ArticleCommentView(generics.ListCreateAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsOwnerOrReadOnly,)
     serializer_class = ArticleCommentsSerializer
 
     def get_queryset(self):

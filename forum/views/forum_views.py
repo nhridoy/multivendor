@@ -18,7 +18,7 @@ from forum.serializers import (
     TagCreateSerializer,
     TagSerializer,
 )
-from utils.extensions.permissions import IsAdminOrReadOnly
+from utils.extensions.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
 
 
 class TagView(viewsets.ModelViewSet):
@@ -71,13 +71,13 @@ class ForumViewSets(viewsets.ModelViewSet):
             return ForumListSerializer
         return ForumDetailSerializer
 
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsOwnerOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
-class ForumLikeView(views.APIView):
+class ForumLikeView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def toggle_like(self, user):
@@ -99,7 +99,7 @@ class ForumLikeView(views.APIView):
 
 
 class ForumCommentView(generics.ListCreateAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (IsOwnerOrReadOnly,)
     serializer_class = ForumCommentsSerializer
 
     def get_queryset(self):
