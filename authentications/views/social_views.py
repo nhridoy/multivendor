@@ -114,14 +114,14 @@ class AppleLoginView(views.APIView):
     permission_classes = ()
     authentication_classes = ()
 
-    def get_key_and_secret(self):
+    def get_key_and_secret(self, client_id):
         headers = {"kid": settings.SOCIAL_AUTH_APPLE_ID_KEY}
         payload = {
             "iss": settings.SOCIAL_AUTH_APPLE_ID_TEAM,
             "iat": timezone.now(),
             "exp": timezone.now() + timedelta(days=180),
             "aud": "https://appleid.apple.com",
-            "sub": settings.SOCIAL_AUTH_APPLE_ID_CLIENT,
+            "sub": client_id,
         }
 
         client_secret = jwt.encode(
@@ -135,13 +135,18 @@ class AppleLoginView(views.APIView):
 
     def post(self, request, *args, **kwargs):
         request_data = self.request.data
+        client_id = (
+            settings.SOCIAL_AUTH_APPLE_ID_SERVICE
+            if request_data.get("type", "web") == "web"
+            else settings.SOCIAL_AUTH_APPLE_ID_CLIENT
+        )
         serializer = SocialLoginSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         try:
             data = {
                 "code": serializer.validated_data.get("code"),
-                "client_id": settings.SOCIAL_AUTH_APPLE_ID_CLIENT,
-                "client_secret": self.get_key_and_secret(),
+                "client_id": client_id,
+                "client_secret": self.get_key_and_secret(client_id),
                 "redirect_uri": settings.APPLE_REDIRECT_URL,
                 "grant_type": "authorization_code",
             }
@@ -154,7 +159,7 @@ class AppleLoginView(views.APIView):
             if resp.status_code == 200:
                 decoded = jwt.decode(
                     resp.json().get("id_token"),
-                    audience=settings.SOCIAL_AUTH_APPLE_ID_CLIENT,
+                    audience=client_id,
                     options={"verify_signature": False},
                 )
 
