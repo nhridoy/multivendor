@@ -77,23 +77,37 @@ class KakaoLoginView(views.APIView):
                 style="form",
                 explode=False,
                 required=True,
-            )
+            ),
+            OpenApiParameter(
+                "type",
+                enum=["web", "ios", "android"],
+                type={"type": "string"},
+                style="form",
+                explode=False,
+                required=True,
+            ),
         ]
     )
     def get(self, request, *args, **kwargs):
-        serializer = SocialLoginSerializer(data=self.request.query_params)
+        request_data = self.request.query_params
+        serializer = SocialLoginSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
         kakao_backend = KakaoOAuth2()
         try:
-            data = {
-                "code": serializer.validated_data.get("code"),
-                "client_id": settings.SOCIAL_AUTH_KAKAO_APP_KEY,
-                "redirect_uri": settings.KAKAO_REDIRECT_URL,
-                "grant_type": "authorization_code",
-            }
-            resp = requests.post(settings.KAKAO_TOKEN_URL, data=data)
+            if request_data.get("type", "web") == "web":
+                data = {
+                    "code": serializer.validated_data.get("code"),
+                    "client_id": settings.SOCIAL_AUTH_KAKAO_APP_KEY,
+                    "redirect_uri": settings.KAKAO_REDIRECT_URL,
+                    "grant_type": "authorization_code",
+                }
+                resp = requests.post(settings.KAKAO_TOKEN_URL, data=data)
 
-            user_data = kakao_backend.user_data(resp.json().get("access_token"))
+                user_data = kakao_backend.user_data(resp.json().get("access_token"))
+            else:
+                user_data = kakao_backend.user_data(
+                    serializer.validated_data.get("code")
+                )
 
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
@@ -135,9 +149,10 @@ class AppleLoginView(views.APIView):
 
     def post(self, request, *args, **kwargs):
         request_data = self.request.data
+        client_type = request_data.get("type", "web")
         client_id = (
             settings.SOCIAL_AUTH_APPLE_ID_SERVICE
-            if request_data.get("type", "web") == "web"
+            if client_type == "web"
             else settings.SOCIAL_AUTH_APPLE_ID_CLIENT
         )
         serializer = SocialLoginSerializer(data=request_data)
@@ -163,7 +178,11 @@ class AppleLoginView(views.APIView):
                     options={"verify_signature": False},
                 )
 
-                user = json.loads(request_data.get("user", "{}"))
+                user = (
+                    request_data.get("user", {})
+                    if client_type == "web"
+                    else json.loads(request_data.get("user", "{}"))
+                )
 
                 full_name = (
                     (
