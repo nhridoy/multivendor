@@ -28,7 +28,7 @@ from utils.helper import decode_token, decrypt
 class ResetPasswordView(views.APIView):
     """
     View for getting email or sms for password reset
-    post: username: ""
+    post: email: ""
     """
 
     serializer_class = serializers.ResetPasswordSerializer

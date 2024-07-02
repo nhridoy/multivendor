@@ -113,9 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = [
-    "authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend"
-]
+AUTHENTICATION_BACKENDS = ["authentications.auth_backend.EmailAuthenticationBackend"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

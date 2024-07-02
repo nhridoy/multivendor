@@ -6,7 +6,6 @@ from django.core.management.base import BaseCommand
 
 # from users.models import email_superuser
 
-SUPERUSER_USERNAME = os.getenv("SUPERUSER_USERNAME")
 SUPERUSER_EMAIL = os.getenv("SUPERUSER_EMAIL")
 SUPERUSER_PASSWORD = os.getenv("SUPERUSER_PASSWORD")
 
@@ -17,7 +16,7 @@ User = get_user_model()
 
 help_message = f"""
 Sets up the DB, creating:
-1) superuser with admin rights (Username: {SUPERUSER_USERNAME})
+1) superuser with admin rights
 """
 
 
@@ -29,15 +28,12 @@ class Command(BaseCommand):
     help = help_message
 
     def handle(self, *args, **kwargs):
-        if (
-            not User.objects.filter(username=SUPERUSER_USERNAME).exists()
-            or not User.objects.filter(email=SUPERUSER_EMAIL).exists()
-        ):
+        if not User.objects.filter(email=SUPERUSER_EMAIL).exists():
             User.objects.create_superuser(
-                username=SUPERUSER_USERNAME,
                 email=SUPERUSER_EMAIL,
                 password=SUPERUSER_PASSWORD,
                 oauth_provider="email",
+                role="admin",
             )
             print("Super-User Created!")
         print("Set-Up Complete!")

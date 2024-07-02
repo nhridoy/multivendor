@@ -7,20 +7,19 @@ from authentications import models
 # Register your models here.
 class AdminUser(UserAdmin):
     ordering = ("-date_joined",)
-    search_fields = (
-        "username",
-        "email",
-    )
+    search_fields = ("email",)
     list_filter = (
         "is_active",
         "is_staff",
         "is_superuser",
         "is_verified",
+        "role",
     )
     list_display = (
-        "username",
+        "id",
         "email",
         "oauth_provider",
+        "role",
         "date_joined",
         "is_verified",
         "is_active",
@@ -30,7 +29,7 @@ class AdminUser(UserAdmin):
             "Login Info",
             {
                 "fields": (
-                    "username",
+                    "id",
                     "email",
                     "password",
                     "oauth_provider",
@@ -42,6 +41,7 @@ class AdminUser(UserAdmin):
             "Permissions",
             {
                 "fields": (
+                    "role",
                     "is_active",
                     "is_staff",
                     "is_superuser",
@@ -55,11 +55,11 @@ class AdminUser(UserAdmin):
             {
                 "classes": ("wide",),
                 "fields": (
-                    "username",
                     "email",
                     "password1",
                     "password2",
                     "oauth_provider",
+                    "role",
                     "is_verified",
                 ),
             },
@@ -71,12 +71,12 @@ class AdminUserInformation(admin.ModelAdmin):
     ordering = ("-created_at",)
     autocomplete_fields = (
         "user",
+        "language",
         "country",
         "province",
         "city",
     )
     search_fields = (
-        "user__username",
         "user__email",
         "full_name",
         "phone_number",
@@ -86,6 +86,7 @@ class AdminUserInformation(admin.ModelAdmin):
         "user",
         "full_name",
         "gender",
+        "language",
         "country",
         "province",
         "city",
@@ -130,10 +131,7 @@ class AdminOTPModel(admin.ModelAdmin):
         "otp_method",
         "updated_at",
     )
-    search_fields = (
-        "user__username",
-        "user__email",
-    )
+    search_fields = ("user__email",)
 
 
 admin.site.register(models.User, AdminUser)

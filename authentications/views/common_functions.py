@@ -109,7 +109,6 @@ def send_verification_sms(phone_number, code):
 
 def get_token(user):
     token = RefreshToken.for_user(user)
-    token["username"] = user.username
     token["email"] = user.email
     token["is_staff"] = user.is_staff
     token["is_active"] = user.is_active

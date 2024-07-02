@@ -54,7 +54,6 @@ class ForumCommentsSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         return {
             "id": obj.author.id,
-            "username": obj.author.username,
             "full_name": obj.author.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
@@ -113,7 +112,6 @@ class ForumListSerializer(ModelSerializer):
         request = self.context.get("request")
         return {
             "id": obj.author.id,
-            "username": obj.author.username,
             "full_name": obj.author.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
@@ -175,7 +173,6 @@ class ForumDetailSerializer(ModelSerializer):
         request = self.context.get("request")
         return {
             "id": obj.author.id,
-            "username": obj.author.username,
             "full_name": obj.author.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(

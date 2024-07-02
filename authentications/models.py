@@ -19,6 +19,11 @@ USER_OAUTH_PROVIDER = (
     ("email", "email"),
 )
 
+ROLE = (
+    ("user", "user"),
+    ("admin", "admin"),
+)
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
@@ -30,11 +35,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=uuid.uuid4,
         verbose_name="ID",
     )
-    username = models.CharField(
-        max_length=100,
-        verbose_name="Username",
-        unique=True,
-    )
     email = models.EmailField(
         max_length=100,
         verbose_name="Email",
@@ -43,6 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         # blank=True,
     )
     oauth_provider = models.CharField(choices=USER_OAUTH_PROVIDER, max_length=10)
+    role = models.CharField(choices=ROLE, max_length=10, default="user")
     date_joined = models.DateTimeField(
         verbose_name="Date Joined",
         auto_now_add=True,
@@ -70,15 +71,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text="Email Verified",
     )
-    USERNAME_FIELD = "username"
-    REQUIRED_FIELDS = [
-        "email",
-    ]
+    USERNAME_FIELD = "email"
+    # REQUIRED_FIELDS = [
+    #     "email",
+    # ]
 
     objects = UserManager()
 
     def __str__(self):
-        return self.username
+        return self.email
 
 
 class UserInformation(BaseModel):
@@ -132,7 +133,7 @@ class UserInformation(BaseModel):
     )
 
     def __str__(self):
-        return f"{self.full_name} - {self.user.username}"
+        return f"{self.full_name} - {self.user.email}"
 
 
 class UserTwoStepVerification(BaseModel):
@@ -153,4 +154,4 @@ class UserTwoStepVerification(BaseModel):
     otp_method = models.CharField(choices=OTP_METHOD, max_length=20, default="___")
 
     def __str__(self):
-        return self.user.username
+        return self.user.email

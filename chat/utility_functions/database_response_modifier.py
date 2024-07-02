@@ -8,7 +8,7 @@ def chat_history_modifier(chat_logs):
         response.append(
             {
                 "id": chat_log.id,
-                "user": chat_log.user.username,
+                "user": chat_log.user.user_information.full_name,
                 "message": chat_log.content,
             }
         )

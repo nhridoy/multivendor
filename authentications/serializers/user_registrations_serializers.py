@@ -60,7 +60,6 @@ class NewUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create(
-            username=self.__create_username(validated_data["email"]),
             email=validated_data["email"],
         )
         user.set_password(validated_data["password1"])
@@ -75,21 +74,3 @@ class NewUserSerializer(serializers.ModelSerializer):
 
         user_info.save()
         return user
-
-    def __create_username(self, email):
-        """
-        Create a unique username for the user.
-        """
-        username = email
-        if username is None:
-            return None
-        username = username.split("@")[0]
-        username = username.replace(".", "")
-        username = username.replace("_", "")
-        username = username.replace("-", "")
-        username = username.lower()
-        if username == "":
-            return None
-        if User.objects.filter(username=username).exists():
-            username = username + str(random.randint(1, 1000))
-        return username

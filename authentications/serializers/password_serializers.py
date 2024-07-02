@@ -68,15 +68,13 @@ class ResetPasswordSerializer(serializers.Serializer):
     Reset Password Request Serializer
     """
 
-    username = serializers.CharField(required=True)
+    email = serializers.CharField(required=True)
 
-    def validate_username(self, value):
+    def validate_email(self, value):
         try:
-            self.user = User.objects.get(Q(email=value) | Q(username=value))
+            self.user = User.objects.get(email=value)
         except User.DoesNotExist as e:
-            raise validators.ValidationError(
-                detail="Wrong Username/Email/Phone Number"
-            ) from e
+            raise validators.ValidationError(detail="Wrong Email") from e
         return value
 
 
