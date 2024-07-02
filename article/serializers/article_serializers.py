@@ -18,13 +18,13 @@ class ArticleCategoryCreateSerializer(serializers.ModelSerializer):
 
 class ArticleCommentsSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField(read_only=True)
-    author = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ArticleComment
         fields = (
             "id",
-            "author",
+            "user",
             "content",
             "image",
             "created_at",
@@ -35,7 +35,7 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             # "article": {"write_only": True},
             "parent_comment": {"write_only": True},
-            # "author": {"read_only": True},
+            # "user": {"read_only": True},
         }
 
     def get_replies(self, obj):
@@ -45,16 +45,16 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
             replies, many=True, context={"request": self.context.get("request")}
         ).data
 
-    def get_author(self, obj):
+    def get_user(self, obj):
         request = self.context.get("request")
         return {
-            "id": obj.author.id,
-            "full_name": obj.author.user_information.full_name,
+            "id": obj.user.id,
+            "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
-                    obj.author.user_information.profile_picture.url
+                    obj.user.user_information.profile_picture.url
                 )
-                if obj.author.user_information.profile_picture
+                if obj.user.user_information.profile_picture
                 else None
             ),
         }
@@ -69,7 +69,7 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
-    author = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
     category = ArticleCategorySerializer(read_only=True)
     is_liked = serializers.SerializerMethodField(read_only=True)
 
@@ -81,26 +81,25 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "title",
             "short_content",
             "category",
-            "author",
+            "user",
             "total_like",
             "total_comment",
-            "square_thumbnail",
-            "landscape_thumbnail",
+            "thumbnail",
             "created_at",
             "updated_at",
             "is_liked",
         ]
 
-    def get_author(self, obj):
+    def get_user(self, obj):
         request = self.context.get("request")
         return {
-            "id": obj.author.id,
-            "full_name": obj.author.user_information.full_name,
+            "id": obj.user.id,
+            "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
-                    obj.author.user_information.profile_picture.url
+                    obj.user.user_information.profile_picture.url
                 )
-                if obj.author.user_information.profile_picture
+                if obj.user.user_information.profile_picture
                 else None
             ),
         }
@@ -111,7 +110,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
     article_comments = ArticleCommentsSerializer(many=True, read_only=True)
 
     class Meta:
@@ -120,10 +119,9 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
             "id",
             "slug",
             "category",
-            "author",
+            "user",
             "title",
-            "square_thumbnail",
-            "landscape_thumbnail",
+            "THUMBNAIL",
             "short_content",
             "content",
             "total_like",

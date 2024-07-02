@@ -38,7 +38,7 @@ class TagView(viewsets.ModelViewSet):
 class ForumViewSets(viewsets.ModelViewSet):
     queryset = (
         Forum.objects.all()
-        .select_related("author__user_information", "province", "city")
+        .select_related("user__user_information", "province", "city")
         .prefetch_related(
             "images",
             "tags",
@@ -58,7 +58,7 @@ class ForumViewSets(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.request.user.is_authenticated:
-            user_likes = ForumLike.objects.filter(author=self.request.user).values_list(
+            user_likes = ForumLike.objects.filter(user=self.request.user).values_list(
                 "forum_id", flat=True
             )
             context["user_likes"] = set(user_likes)
@@ -74,7 +74,7 @@ class ForumViewSets(viewsets.ModelViewSet):
     permission_classes = (IsOwnerOrReadOnly,)
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(user=self.request.user)
 
 
 class ForumLikeView(generics.GenericAPIView):
@@ -82,7 +82,7 @@ class ForumLikeView(generics.GenericAPIView):
 
     def toggle_like(self, user):
         forum = generics.get_object_or_404(Forum, slug=self.kwargs.get("slug"))
-        like, created = ForumLike.objects.get_or_create(forum=forum, author=user)
+        like, created = ForumLike.objects.get_or_create(forum=forum, user=user)
         if created:
             forum.total_like += 1
             data = "Liked"
@@ -108,7 +108,7 @@ class ForumCommentView(generics.ListCreateAPIView):
                 forum__slug=self.kwargs.get("slug"), parent_comment=None
             )
             .prefetch_related("replies__replies__replies__replies__replies")
-            .select_related("author__user_information")
+            .select_related("user__user_information")
         )
 
     @transaction.atomic()
@@ -119,5 +119,5 @@ class ForumCommentView(generics.ListCreateAPIView):
 
         serializer.save(
             forum=forum,
-            author=self.request.user,
+            user=self.request.user,
         )
