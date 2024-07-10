@@ -10,8 +10,9 @@ DEFAULT_OTP_SECRET = os.getenv(
     "DEFAULT_OTP_SECRET", default="1234567890"
 )  # default OTP Secret Key
 # OTP Verification True will send otp code to user while registration
-OTP_ENABLED = os.getenv("OTP_ENABLED") == "True"
+REQUIRED_EMAIL_VERIFICATION = os.getenv("REQUIRED_EMAIL_VERIFICATION") == "True"
 OTP_EXPIRY = os.getenv("OTP_EXPIRY", default="30")  # OTP Expiry Time
+TOKEN_TIMEOUT_SECONDS = int(os.getenv("TOKEN_TIMEOUT_SECONDS", "300"))
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),

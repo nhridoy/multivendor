@@ -5,9 +5,9 @@ from typing import Literal
 from dj_rest_auth.jwt_auth import set_jwt_cookies
 from django.conf import settings
 from django.contrib.auth import login
+from django.utils.translation import gettext as _
 from pyotp import TOTP
-from rest_framework import status
-from rest_framework.response import Response
+from rest_framework import exceptions, response, status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentications.models import User
@@ -16,11 +16,20 @@ from utils.modules import EmailSender
 from utils.modules.solapi_sms import SolApiClient
 
 
+def get_origin(self):
+    try:
+        return self.request.headers["origin"]
+    except Exception as e:
+        raise exceptions.PermissionDenied(
+            detail=_("Origin not found on request header")
+        ) from e
+
+
 def direct_login(request, user: User, token_data):
     if settings.REST_AUTH.get("SESSION_LOGIN", False):
         login(request, user)
 
-    resp = Response()
+    resp = response.Response()
 
     set_jwt_cookies(
         response=resp,
@@ -31,7 +40,7 @@ def direct_login(request, user: User, token_data):
             settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
         ),
     )
-    resp.data = {"data": token_data, "detail": "Logged in successfully"}
+    resp.data = {"data": token_data, "detail": _("Logged in successfully")}
     resp.status_code = status.HTTP_200_OK
     return resp
 
@@ -49,34 +58,28 @@ def generate_and_send_otp(
         # email send for otp code
         send_otp_email(user, otp_code)
 
-    return Response(
+    return response.Response(
         {
             "data": {
                 "secret": generate_token(user) if generate_secret else None,
                 "otp_method": otp_method,
-                "detail": "OTP is active for 300 seconds",
+                "detail": _("OTP is active for 300 seconds"),
             },
-            "message": "OTP is Sent",
+            "message": _("OTP is Sent"),
         },
         status=status.HTTP_200_OK,
     )
 
 
 def generate_link(user: User, origin: str, route: str) -> str:
-    payload = {
-        "user": str(user.id),
-        "exp": datetime.datetime.now(datetime.timezone.utc)
-        + datetime.timedelta(minutes=30),
-    }
-
-    return f"{origin}/auth/{route}/{encrypt(encode_token(payload=payload)).decode()}/"
+    return f"{origin}/auth/{route}/{generate_token(user)}/"
 
 
 def generate_token(user: User):
     payload = {
         "user": str(user.id),
         "exp": datetime.datetime.now(datetime.timezone.utc)
-        + datetime.timedelta(minutes=30),
+        + datetime.timedelta(seconds=settings.TOKEN_TIMEOUT_SECONDS),
     }
     token = encrypt(encode_token(payload=payload)).decode()
     return token

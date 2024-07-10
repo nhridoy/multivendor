@@ -9,22 +9,20 @@ from rest_framework import serializers, validators
 from authentications.models import ROLE, User, UserInformation
 
 
-class NewUserSerializer(serializers.ModelSerializer):
+class RegistrationSerializer(serializers.ModelSerializer):
     """
     New User Registration Serializer
     """
 
-    first_name = serializers.CharField(
-        required=True, write_only=True, source="user_information.first_name"
-    )
-    last_name = serializers.CharField(
-        required=True, write_only=True, source="user_information.last_name"
-    )
     retype_password = serializers.CharField(
         style={"input_type": "password"},
         write_only=True,
         required=True,
         label="Retype Password",
+    )
+
+    full_name = serializers.CharField(
+        required=True, write_only=True, source="user_information.full_name"
     )
     role = serializers.ChoiceField(
         choices=ROLE,
@@ -38,8 +36,7 @@ class NewUserSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "retype_password",
-            "first_name",
-            "last_name",
+            "full_name",
             "role",
         ]
 
@@ -62,10 +59,8 @@ class NewUserSerializer(serializers.ModelSerializer):
         validated_data.pop("retype_password")
         user = User.objects.create_user(**validated_data, oauth_provider="email")
         user_info = user.user_information
+        user_info.full_name = information_user["full_name"]
 
-        user_info.first_name = information_user["first_name"]
-        user_info.last_name = information_user["last_name"]
-
-        user_info.save(update_fields=["first_name", "last_name"])
+        user_info.save(update_fields=["full_name"])
 
         return user

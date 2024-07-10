@@ -14,11 +14,11 @@ from authentications.views import (
     LoginView,
     LogoutView,
     MyTokenRefreshView,
-    NewUserView,
     OTPCheckView,
     OTPLoginView,
     OTPView,
     PasswordValidateView,
+    RegistrationView,
 )
 from authentications.views.reset_password_views import (
     PasswordResetConfirmView,
@@ -27,7 +27,7 @@ from authentications.views.reset_password_views import (
 )
 
 router = DefaultRouter()
-router.register(r"register", NewUserView, basename="register")
+router.register(r"register", RegistrationView, basename="register")
 password_urls = [
     path("password-validate/", PasswordValidateView.as_view()),
     path("password-change/", ChangePasswordView.as_view(), name="change_password"),

@@ -15,6 +15,7 @@ from authentications.views.common_functions import (
     generate_link,
     generate_otp,
     generate_token,
+    get_origin,
     send_verification_email,
 )
 from utils import helper
@@ -55,17 +56,9 @@ class ResetPasswordView(views.APIView):
             raise exceptions.PermissionDenied(detail="No Email found!!!")
 
         if otp == "otp":
-            return self.__user_validate_and_send_token(user, self.__get_origin())
+            return self.__user_validate_and_send_token(user, get_origin(self))
         else:
-            return self.email_sender_helper(user, self.__get_origin())
-
-    def __get_origin(self):
-        try:
-            return self.request.headers["origin"]
-        except Exception as e:
-            raise exceptions.PermissionDenied(
-                detail="Origin not found on request header"
-            ) from e
+            return self.email_sender_helper(user, get_origin(self))
 
     def __user_validate_and_send_token(self, user, origin):
 
