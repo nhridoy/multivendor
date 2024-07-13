@@ -1,32 +1,24 @@
-import json
-
-from dj_rest_auth.jwt_auth import unset_jwt_cookies
-from django.conf import settings
-from django.contrib.auth import get_user_model, logout, password_validation
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.shortcuts import redirect
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import exceptions, generics, status, views, viewsets
+from django.utils.translation import gettext as _
+from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import exceptions, generics
 from rest_framework.response import Response
 
-from authentications import models, serializers
+from authentications import serializers
 from authentications.views.common_functions import (
+    generate_and_send_otp,
     generate_link,
-    generate_otp,
     generate_token,
     get_origin,
     send_verification_email,
 )
 from utils import helper
-from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
-from utils.helper import decode_token, decrypt
+from utils.extensions import validate_query_params
 
 
 # ============***********============
 # Password reset views
 # ============***********============
-class ResetPasswordView(views.APIView):
+class ResetPasswordView(generics.GenericAPIView):
     """
     View for getting email or sms for password reset
     post: email: ""
@@ -39,14 +31,32 @@ class ResetPasswordView(views.APIView):
     # throttle_classes = (AnonUserRateThrottle,)
 
     @staticmethod
-    def email_sender_helper(user, origin):
-        url = generate_link(user, origin, "reset-password")
+    def email_sender_helper(user, origin, verification_method):
+        url = generate_link(
+            user, origin, "reset-password", verification_method=verification_method
+        )
         send_verification_email(user, url)
 
-        return Response({"detail": "Email Sent", "is_email": True})
+        return Response({"data": {"detail": _("Verification Email Sent")}})
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "verification_method",
+                type={"type": "string"},
+                enum=["email", "sms"],
+                default="email",
+                style="form",
+                explode=False,
+                required=True,
+            ),
+        ]
+    )
+    @validate_query_params("verification_method", ["email", "sms"])
     def post(self, request, *args, **kwargs):
-        otp = self.request.query_params.get("verification_method", None)
+        verification_method = self.request.query_params.get(
+            "verification_method", "email"
+        )
 
         serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
@@ -55,54 +65,15 @@ class ResetPasswordView(views.APIView):
         if not user.email:
             raise exceptions.PermissionDenied(detail="No Email found!!!")
 
-        if otp == "otp":
-            return self.__user_validate_and_send_token(user, get_origin(self))
-        else:
-            return self.email_sender_helper(user, get_origin(self))
-
-    def __user_validate_and_send_token(self, user, origin):
-
-        # protocols
-        # http_host = self.request.META.get("HTTP_HOST")
-        # http_ref = self.request.META.get("HTTP_ORIGIN", "127.0.0.1:8000")
-        # Encryption
-        # token = PasswordResetTokenGenerator().make_token(user)
-        # encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
-        # to_enc = {"token": token, "enc_pk": encoded_pk, "ref": origin}
-        # enc_token = helper.encode(str(to_enc))
-        # token_u = str(enc_token, "UTF-8")
-        # Send the one-time password to the user's email or phone number
-        # protocol = "http://" if "http" not in http_host else ""
-        token = generate_token(user)
-        otp = generate_otp(user)
-        url = f"{origin}/api/auth/password-verify/?token={token}"
-
-        try:
-            user_name = (
-                user.user_information.first_name + " " + user.user_information.last_name
+        if verification_method == "sms":
+            return generate_and_send_otp(
+                user, "sms", True, verification_method=verification_method
             )
-        except:
-            user_name = "Dear"
-
-        # templated_email_send(
-        #     subject="Password Reset Request",
-        #     send_to=[user.email],
-        #     context={"reset_link": url, "user_name": user_name},
-        #     template="reset_email.html",
-        #     email_from="Reset Password <support@test.com>",
-        # )
-        return Response(
-            {
-                "message": "Reset Email sent",
-                "token": token,
-                # "url_token": token_u,
-                "data": url,
-            },
-            status=status.HTTP_200_OK,
-        )
+        else:
+            return self.email_sender_helper(user, get_origin(self), verification_method)
 
 
-class ResetPasswordCheckView(views.APIView):
+class ResetPasswordCheckView(generics.GenericAPIView):
     """
     View for checking if the url is expired or not
     post: token: ""
@@ -113,34 +84,27 @@ class ResetPasswordCheckView(views.APIView):
     serializer_class = serializers.ResetPasswordCheckSerializer
 
     def post(self, request, *args, **kwargs):
-        ser = self.serializer_class(data=self.request.data)
-        ser.is_valid(raise_exception=True)
-        otp = self.request.query_params.get("q", None)
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
 
-        try:
-            decode_token(token=decrypt(str(ser.data.get("token"))))
-
-        except Exception as e:
-            raise exceptions.APIException(detail=e) from e
-
-        if otp == "otp":
-            token = kwargs.get("token")
-            # serializer = serializers.PasswordResetVerifySerializer(data=request.data, context={"token": token})
-            # serializer.is_valid(raise_exception=True)
-            # return Response(
-            #     {"message": "OTP Verified", "data": serializer.data},
-            #     status=status.HTTP_200_OK,
-            # )
-
-            # TODO:verify otp
-
-        return Response({"data": "Accepted"})
+        return Response(
+            {
+                "data": {
+                    "detail": "Accepted",
+                    "secret": generate_token(
+                        serializer.user,
+                        reset_password=True,
+                        verification_method=serializer.verification_method,
+                    ),
+                }
+            }
+        )
 
 
-class ResetPasswordConfirmView(views.APIView):
+class ResetPasswordConfirmView(generics.GenericAPIView):
     """
     View for resetting password after checking the token
-    post: token: "", password: ""
+    post: secret: "", password: ""
     """
 
     serializer_class = serializers.ResetPasswordConfirmSerializer
@@ -148,154 +112,14 @@ class ResetPasswordConfirmView(views.APIView):
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
-        ser = self.serializer_class(data=self.request.data)
-        ser.is_valid(raise_exception=True)
-        otp = self.request.query_params.get("q", None)
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if otp == "otp":
-            token = kwargs.pop("token")
-            serializer = serializers.PasswordResetSerializer(
-                data=request.data, context={"token": token}
-            )
-            serializer.is_valid(raise_exception=True)
-            return Response({"message": "Password changed"})
-        try:
-            return self._change_password(ser)
-        except Exception as e:
-            raise exceptions.APIException(detail=e) from e
+        return self._change_password(serializer)
 
     @staticmethod
-    def _change_password(ser):
-        decoded = decode_token(token=decrypt(str(ser.data.get("token"))))
-
-        if ser.validated_data.get("password") != ser.validated_data.get(
-            "retype_password"
-        ):
-            raise exceptions.NotAcceptable(detail="Passwords doesn't match!!!")
-
-        user = models.User.objects.get(id=decoded.get("user"))
-        password_validation.validate_password(
-            password=ser.data.get("password"), user=user
-        )
-        user.set_password(ser.data.get("password"))
-        user.save()
-        return Response({"detail": "Password Changed Successfully"})
-
-
-class PasswordResetView(generics.GenericAPIView):
-    serializer_class = serializers.ResetPasswordSerializer
-    permission_classes = []
-    authentication_classes = []
-
-    def post(self, request):
-        email = request.data.get("email")
-        userModel = get_user_model()
-        try:
-            return self.__user_validate_and_send_token(userModel, email)
-        except userModel.DoesNotExist:
-            return Response(
-                {"message": "User not found with this email"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-    def __user_validate_and_send_token(self, userModel, email):
-        user = userModel.objects.get(email=email)
-
-        # protocols
-        http_host = self.request.META.get("HTTP_HOST")
-        http_ref = self.request.META.get("HTTP_ORIGIN", "127.0.0.1:8000")
-        # Encryption
-        token = PasswordResetTokenGenerator().make_token(user)
-        encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
-        to_enc = {"token": token, "enc_pk": encoded_pk, "ref": http_ref}
-        enc_token = helper.encode(str(to_enc))
-        token_u = str(enc_token, "UTF-8")
-        # Send the one-time password to the user's email or phone number
-        protocol = "http://" if "http" not in http_host else ""
-        url = f"{protocol}{http_host}/api/auth/password-verify/?token={token_u}"
-
-        try:
-            user_name = (
-                user.user_information.first_name + " " + user.user_information.last_name
-            )
-        except:
-            user_name = "Dear"
-
-        # templated_email_send(
-        #     subject="Password Reset Request",
-        #     send_to=[user.email],
-        #     context={"reset_link": url, "user_name": user_name},
-        #     template="reset_email.html",
-        #     email_from="Reset Password <support@test.com>",
-        # )
-        return Response(
-            {
-                "message": "Reset Email sent",
-                "token": enc_token,
-                "url_token": token_u,
-                "data": url,
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class PasswordResetOTPVerifyView(generics.GenericAPIView):
-    serializer_class = serializers.PasswordResetVerifySerializer
-    permission_classes = []
-    authentication_classes = []
-
-    def post(self, request, token):
-        serializer = serializers.PasswordResetVerifySerializer(
-            data=request.data, context={"token": token}
-        )
-        serializer.is_valid(raise_exception=True)
-        return Response(
-            {"message": "OTP Verified", "data": serializer.data},
-            status=status.HTTP_200_OK,
-        )
-
-
-class PasswordResetConfirmView(viewsets.ModelViewSet):
-    serializer_class = serializers.PasswordResetSerializer
-    permission_classes = []
-
-    def post(self, request, token):
-        serializer = serializers.PasswordResetSerializer(
-            data=request.data, context={"token": token}
-        )
-        serializer.is_valid(raise_exception=True)
-        return Response({"message": "Password changed"})
-
-    def verify_token(self, request, *args, **kwargs):
-        token = self.request.query_params.get("token", None)
-
-        # validate token
-        user, key, ref = self._validate_user(token)
-        if user or key:
-            # redirect to frontend with token
-            return redirect(to=f"{ref}/reset-password/{token}")
-        return redirect(to=f"{ref}/")
-
-    def _validate_user(self, token):
-        """
-        Verify token and encoded_pk and then set new password.
-        """
-        # decode token
-        _decrypted_data = helper.decode(str(token))
-        # replace all single quote with double quote
-        _decrypted_data_dict = json.loads(_decrypted_data.replace("'", '"'))
-
-        token = _decrypted_data_dict["token"]
-        encoded_pk = _decrypted_data_dict["enc_pk"]
-        ref = _decrypted_data_dict["ref"]
-
-        if token is None or encoded_pk is None:
-            return Response(
-                {"detail": "Missing value"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        pk = urlsafe_base64_decode(encoded_pk).decode()
-        user = models.User.objects.get(pk=pk)
-        if not PasswordResetTokenGenerator().check_token(user, token):
-            return None, None, ref
-        return user, _decrypted_data_dict, ref
+    def _change_password(serializer):
+        user = serializer.user
+        user.set_password(serializer.validated_data.get("password"))
+        user.save(update_fields=["password"])
+        return Response({"detail": _("Password Changed Successfully")})

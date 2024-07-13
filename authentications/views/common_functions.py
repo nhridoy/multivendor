@@ -46,9 +46,15 @@ def direct_login(request, user: User, token_data):
 
 
 def generate_and_send_otp(
-    user: User, otp_method: Literal["sms", "email"], generate_secret: bool = False
+    user: User,
+    otp_method: Literal["sms", "email"],
+    generate_secret: bool = False,
+    **kwargs,
 ):
-    otp = TOTP(user.user_two_step_verification.secret_key, interval=300)
+    otp = TOTP(
+        user.user_two_step_verification.secret_key,
+        interval=settings.TOKEN_TIMEOUT_SECONDS,
+    )
 
     otp_code = otp.now()
     if otp_method == "sms":
@@ -61,9 +67,11 @@ def generate_and_send_otp(
     return response.Response(
         {
             "data": {
-                "secret": generate_token(user) if generate_secret else None,
+                "secret": generate_token(user, **kwargs) if generate_secret else None,
                 "otp_method": otp_method,
-                "detail": _("OTP is active for 300 seconds"),
+                "detail": _(
+                    f"OTP is active for {settings.TOKEN_TIMEOUT_SECONDS} seconds"
+                ),
             },
             "message": _("OTP is Sent"),
         },
@@ -71,15 +79,16 @@ def generate_and_send_otp(
     )
 
 
-def generate_link(user: User, origin: str, route: str) -> str:
-    return f"{origin}/auth/{route}/{generate_token(user)}/"
+def generate_link(user: User, origin: str, route: str, **kwargs) -> str:
+    return f"{origin}/auth/{route}/{generate_token(user, **kwargs)}/"
 
 
-def generate_token(user: User):
+def generate_token(user: User, **kwargs):
     payload = {
         "user": str(user.id),
         "exp": datetime.datetime.now(datetime.timezone.utc)
         + datetime.timedelta(seconds=settings.TOKEN_TIMEOUT_SECONDS),
+        **kwargs,
     }
     token = encrypt(encode_token(payload=payload)).decode()
     return token
