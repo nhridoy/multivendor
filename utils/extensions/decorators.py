@@ -12,13 +12,17 @@ def validate_query_params(query_name, valid_params):
 
             if not query_params:
                 return Response(
-                    f"No query parameters provided. Options are: {query_name}={valid_params}",
+                    {
+                        "message": f"No query parameters provided. Options are: {query_name}={valid_params}"
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if query_params not in valid_params:
                 return Response(
-                    f"Invalid query parameter: {query_params}. Options are: otp_method=['authenticator_app', 'email', 'sms']",
+                    {
+                        "message": f"Invalid query parameter: {query_params}. Options are: {query_name}={valid_params}"
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

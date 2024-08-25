@@ -31,15 +31,6 @@ def get_tokens_for_user(user):
     }
 
 
-def generate_username(name):
-    username = "".join(name.split(" ")).lower()
-    if not User.objects.filter(username=username).exists():
-        return username
-    else:
-        random_username = username + str(random.randint(0, 1000))
-        return generate_username(random_username)
-
-
 def register_social_user(profile_image_url, provider, email, name):
     filtered_user = User.objects.filter(email=email)
 
@@ -59,7 +50,6 @@ def register_social_user(profile_image_url, provider, email, name):
 
     else:
         user = {
-            "username": generate_username(name),
             "email": email,
             "oauth_provider": provider,
         }

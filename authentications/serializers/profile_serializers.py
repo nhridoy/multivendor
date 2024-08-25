@@ -12,20 +12,16 @@ from options.serializers import (
 
 
 class UserInformationSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username", read_only=True)
     email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = UserInformation
         fields = (
-            "username",
             "email",
             "full_name",
-            "nationality",
-            "interests",
+            "country",
             "province",
             "city",
-            "visa_type",
             "language",
             "profile_picture",
             "date_of_birth",
@@ -63,7 +59,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "id",
-            "username",
             "email",
             "phone_number",
             "name",
@@ -81,7 +76,6 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
             "is_active",
             "id",
-            "username",
             "email",
             "oauth_provider",
             "is_staff",

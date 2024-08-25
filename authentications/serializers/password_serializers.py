@@ -1,15 +1,15 @@
-import json
+import contextlib
 
 import pyotp
+from cryptography.fernet import InvalidToken as FernetInvalidToken
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.db.models import Q
-from django.utils.http import urlsafe_base64_decode
+from django.utils.translation import gettext as _
+from jwt import ExpiredSignatureError
 from rest_framework import serializers, validators
 
 from authentications.models import User
-from utils import helper
+from utils.helper import decode_token, decrypt
 
 
 class PasswordValidateSerializer(serializers.Serializer):
@@ -49,11 +49,11 @@ class ChangePasswordSerializer(serializers.Serializer):
         user = self.context["request"].user
         if not user.check_password(attrs["old_password"]):
             raise serializers.ValidationError(
-                {"old_password": "You have entered Wrong password."}
+                {"old_password": _("You have entered Wrong password.")}
             )
         if attrs["password"] != attrs["retype_password"]:
             raise serializers.ValidationError(
-                {"retype_password": "The two password fields didn't match."}
+                {"retype_password": _("The two password fields didn't match.")}
             )
         password_validation.validate_password(password=attrs["password"], user=user)
 
@@ -68,14 +68,18 @@ class ResetPasswordSerializer(serializers.Serializer):
     Reset Password Request Serializer
     """
 
-    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
 
-    def validate_username(self, value):
+    def __init__(self, *args, **kwargs):
+        self.user = None
+        super().__init__(*args, **kwargs)
+
+    def validate_email(self, value):
         try:
-            self.user = User.objects.get(Q(email=value) | Q(username=value))
+            self.user = User.objects.get(email=value)
         except User.DoesNotExist as e:
             raise validators.ValidationError(
-                detail="Wrong Username/Email/Phone Number"
+                detail=_("No active account found with the given email")
             ) from e
         return value
 
@@ -85,10 +89,44 @@ class ResetPasswordCheckSerializer(serializers.Serializer):
     Serializer for reset-password-check api view
     """
 
-    token = serializers.CharField(required=True)
+    secret = serializers.CharField(required=True)
+    otp = serializers.CharField(required=False)
 
     class Meta:
         fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payload = None
+        self.user = None
+        self.verification_method = None
+
+    def validate(self, attrs):
+        if self.verification_method == "sms":
+            return self.otp_validation(attrs.get("otp"))
+        return attrs
+
+    def validate_secret(self, value):
+        try:
+            self.payload = decode_token(decrypt(value))
+            self.verification_method = self.payload.get("verification_method", "email")
+        except FernetInvalidToken as e:
+            raise serializers.ValidationError(_("Invalid OTP Secret")) from e
+        except ExpiredSignatureError as e:
+            raise serializers.ValidationError(_("OTP Secret Expired")) from e
+        return value
+
+    def otp_validation(self, value):
+        self.user: User = User.objects.get(id=self.payload.get("user"))
+        otp = pyotp.TOTP(
+            self.user.user_two_step_verification.secret_key,
+            interval=settings.TOKEN_TIMEOUT_SECONDS,
+        )
+        if not value:
+            raise serializers.ValidationError({"otp": _("OTP is required")})
+        if not otp.verify(value):
+            raise serializers.ValidationError({"otp": _("Invalid OTP")})
+        return value
 
 
 class ResetPasswordConfirmSerializer(serializers.Serializer):
@@ -96,124 +134,39 @@ class ResetPasswordConfirmSerializer(serializers.Serializer):
     Reset Password Confirm Serializer
     """
 
-    token = serializers.CharField(required=True)
+    secret = serializers.CharField(required=True)
     password = serializers.CharField(
         style={"input_type": "password"},
-        # write_only=True,
+        write_only=True,
         required=True,
         validators=[password_validation.validate_password],
     )
     retype_password = serializers.CharField(
         style={"input_type": "password"},
-        # write_only=True,
+        write_only=True,
         required=True,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.payload = None
+        self.user = None
 
-# ============***********============
-# OTP BASED SERIALIZER PASSWORD RESET
-# ============***********============
-class PasswordResetVerifySerializer(serializers.Serializer):
-    one_time_password = serializers.CharField()
-
-    def validate_one_time_password(self, value):
-        token = self.context.get("token")
-        user, otp, _decrypted_data = self._validate_user(token)
-        print()
-        if otp != value:
-            raise serializers.ValidationError("OTP Invalid")
-        hotp = pyotp.HOTP(user.user_two_step_verification.secret_key)
-        if not hotp.verify(value, 1):
-            raise serializers.ValidationError("Invalid one-time password")
-        return self._verify_otp(_decrypted_data)
-
-    def _validate_user(self, token):
-        """
-        Verify token and encoded_pk and then set new password.
-        """
-
-        _decrypted_data = helper.decode(token)
-        _decrypted_data_dict = json.loads(_decrypted_data.replace("'", '"'))
-
-        token = _decrypted_data_dict["token"]
-        encoded_pk = _decrypted_data_dict["enc_pk"]
-        otp = _decrypted_data_dict["otp"]
-
-        if token is None or encoded_pk is None:
-            raise serializers.ValidationError("Missing data.")
-
-        pk = urlsafe_base64_decode(encoded_pk).decode()
-        user = User.objects.get(pk=pk)
-        if not PasswordResetTokenGenerator().check_token(user, token):
-            raise serializers.ValidationError("The reset token is invalid")
-        return user, otp, _decrypted_data_dict
-
-    def _verify_otp(self, _decrypted_data):
-        _decrypted_data["verified"] = "True"
-        _decrypted_data["verify_secret"] = settings.OTP_VERIFY_SECRET
-        return helper.encode(str(_decrypted_data))
-
-    def to_representation(self, instance):
-        response = super(PasswordResetVerifySerializer, self).to_representation(
-            instance
-        )
-        token = response.pop("one_time_password").split("'")[1]
-        response["token"] = token
-        return response
-
-
-class PasswordResetSerializer(serializers.Serializer):
-    new_password = serializers.CharField()
-    new_password_confirm = serializers.CharField()
-
-    def validate(self, data):
+    def validate_secret(self, value):
         try:
-            token = self.context.get("token")
-            user = self.__validate_user_token(token)
-            if data["new_password"] != data["new_password_confirm"]:
-                raise serializers.ValidationError("Passwords do not match.")
-            user.set_password(data["new_password"])
-            user.save()
-            return data
-        except:
-            raise serializers.ValidationError("Invalid token or something went wrong.")
+            self.payload = decode_token(decrypt(value))
+            if self.payload.get("reset_password") is not True:
+                raise serializers.ValidationError(_("Invalid OTP Secret"))
+        except FernetInvalidToken as e:
+            raise serializers.ValidationError(_("Invalid OTP Secret")) from e
+        except ExpiredSignatureError as e:
+            raise serializers.ValidationError(_("OTP Secret Expired")) from e
+        return value
 
-    def __validate_user_token(self, token):
-        _decrypted_data = helper.decode(token)
-
-        _decrypted_data_dict = json.loads(_decrypted_data.replace("'", '"'))
-
-        token = _decrypted_data_dict["token"]
-
-        encoded_pk = _decrypted_data_dict["enc_pk"]
-
-        pk = urlsafe_base64_decode(encoded_pk).decode()
-        user = User.objects.get(pk=pk)
-        if not PasswordResetTokenGenerator().check_token(user, token):
-            raise serializers.ValidationError("The reset token is invalid")
-        return user
-
-    def _validate_user(self, token):  # for otp verification
-        """
-        Verify token and encoded_pk and then set new password.
-        """
-
-        _decrypted_data = helper.decode(token)
-        _decrypted_data_dict = json.loads(_decrypted_data.replace("'", '"'))
-        token = _decrypted_data_dict["token"]
-        encoded_pk = _decrypted_data_dict["enc_pk"]
-        verified = _decrypted_data_dict["verified"]
-        verify_secret = _decrypted_data_dict["verify_secret"]
-        if self._validate_otp_verified(verified, verify_secret):
-            if token is None or encoded_pk is None:
-                raise serializers.ValidationError("Missing data.")
-
-            pk = urlsafe_base64_decode(encoded_pk).decode()
-            user = User.objects.get(pk=pk)
-            if not PasswordResetTokenGenerator().check_token(user, token):
-                raise serializers.ValidationError("The reset token is invalid")
-            return user
-        raise serializers.ValidationError("OTP not verified")
-
-    def _validate_otp_verified(self, verified, verify_secret):
-        return bool(verified and verify_secret == settings.OTP_VERIFY_SECRET)
+    def validate_password(self, value):
+        with contextlib.suppress(AttributeError):
+            if value != self.initial_data.get("retype_password"):
+                raise serializers.ValidationError(_("Passwords do not match"))
+            self.user: User = User.objects.get(id=self.payload.get("user"))
+            password_validation.validate_password(password=value, user=self.user)
+            return value

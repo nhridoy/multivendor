@@ -1,12 +1,9 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView,
-)
+from rest_framework_simplejwt.views import TokenVerifyView
 
 from authentications.views import (
+    AdminUserViewSet,
     AppleLoginView,
     ChangePasswordView,
     GoogleLoginView,
@@ -14,26 +11,24 @@ from authentications.views import (
     LoginView,
     LogoutView,
     MyTokenRefreshView,
-    NewUserView,
     OTPCheckView,
     OTPLoginView,
     OTPView,
     PasswordValidateView,
+    RegistrationView,
 )
 from authentications.views.reset_password_views import (
-    PasswordResetConfirmView,
-    PasswordResetView,
+    ResetPasswordCheckView,
+    ResetPasswordConfirmView,
     ResetPasswordView,
 )
 
 router = DefaultRouter()
-router.register(r"register", NewUserView, basename="register")
+router.register(r"register", RegistrationView, basename="register")
+router.register(r"admin/user", AdminUserViewSet, basename="admin-user")
+
 password_urls = [
     path("password-validate/", PasswordValidateView.as_view()),
-    path("password-change/", ChangePasswordView.as_view(), name="change_password"),
-    path("password-reset/", ResetPasswordView.as_view()),
-    # path("password-reset-check/", ResetPasswordCheckView.as_view()),
-    # path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
     path("password-change/", ChangePasswordView.as_view(), name="change_password"),
     # reset password
     path(
@@ -42,18 +37,15 @@ password_urls = [
         name="request-password-reset",
     ),
     path(
-        "password-verify/",
-        PasswordResetConfirmView.as_view({"get": "verify_token"}),
+        "password-reset-check/",
+        ResetPasswordCheckView.as_view(),
         name="password-verify",
     ),
-    path(
-        "password-confirm/<str:token>/",
-        PasswordResetConfirmView.as_view({"post": "post"}),
-        name="reset-password",
-    ),
+    path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
 ]
 login_urls = [
-    path("login/", LoginView.as_view(), name="login"),
+    path("login/user/", LoginView.as_view(), name="user-login"),
+    path("login/admin/", LoginView.as_view(), name="admin-login"),
     path("otp-login/", OTPLoginView.as_view(), name="otp-login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("token/refresh/", MyTokenRefreshView.as_view(), name="token_refresh"),

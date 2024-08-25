@@ -13,8 +13,9 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        # "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework.authentication.BasicAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": (
         "utils.extensions.custom_renderer.CustomJSONRenderer",

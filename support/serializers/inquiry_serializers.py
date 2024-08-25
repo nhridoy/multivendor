@@ -18,7 +18,6 @@ class InquirySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         return {
             "id": obj.user.id,
-            "username": obj.user.username,
             "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(

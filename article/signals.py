@@ -10,7 +10,7 @@ def create_article_comment_instance(sender, instance, created, **kwargs):
     if created:
         if instance.parent_comment:
             Notification.objects.create(
-                user=instance.parent_comment.author,
+                user=instance.parent_comment.user,
                 title="New Reply",
-                body=f"{instance.author.user_information.full_name} replied to your comment.",
+                body=f"{instance.user.user_information.full_name} replied to your comment.",
             )

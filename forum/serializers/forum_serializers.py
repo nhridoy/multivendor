@@ -23,13 +23,13 @@ class TagCreateSerializer(ModelSerializer):
 
 class ForumCommentsSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField(read_only=True)
-    author = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ForumComment
         fields = (
             "id",
-            "author",
+            "user",
             "content",
             "image",
             "created_at",
@@ -40,7 +40,7 @@ class ForumCommentsSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             # "article": {"write_only": True},
             "parent_comment": {"write_only": True},
-            # "author": {"read_only": True},
+            # "user": {"read_only": True},
         }
 
     def get_replies(self, obj):
@@ -50,17 +50,16 @@ class ForumCommentsSerializer(serializers.ModelSerializer):
             replies, many=True, context={"request": self.context.get("request")}
         ).data
 
-    def get_author(self, obj):
+    def get_user(self, obj):
         request = self.context.get("request")
         return {
-            "id": obj.author.id,
-            "username": obj.author.username,
-            "full_name": obj.author.user_information.full_name,
+            "id": obj.user.id,
+            "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
-                    obj.author.user_information.profile_picture.url
+                    obj.user.user_information.profile_picture.url
                 )
-                if obj.author.user_information.profile_picture
+                if obj.user.user_information.profile_picture
                 else None
             ),
         }
@@ -81,10 +80,8 @@ class ForumImageSerializer(ModelSerializer):
 
 
 class ForumListSerializer(ModelSerializer):
-    province = serializers.CharField(source="province.province_name")
-    city = serializers.CharField(source="city.city_name")
     tags = TagSerializer(many=True, read_only=True)
-    author = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
     is_liked = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -94,14 +91,12 @@ class ForumListSerializer(ModelSerializer):
             "slug",
             "title",
             "content",
-            "province",
-            "city",
             "tags",
             "total_like",
             "total_comment",
             "created_at",
             "updated_at",
-            "author",
+            "user",
             "is_liked",
         ]
 
@@ -109,17 +104,16 @@ class ForumListSerializer(ModelSerializer):
         user_likes = self.context.get("user_likes", set())
         return obj.id in user_likes
 
-    def get_author(self, obj):
+    def get_user(self, obj):
         request = self.context.get("request")
         return {
-            "id": obj.author.id,
-            "username": obj.author.username,
-            "full_name": obj.author.user_information.full_name,
+            "id": obj.user.id,
+            "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
-                    obj.author.user_information.profile_picture.url
+                    obj.user.user_information.profile_picture.url
                 )
-                if obj.author.user_information.profile_picture
+                if obj.user.user_information.profile_picture
                 else None
             ),
         }
@@ -128,17 +122,9 @@ class ForumListSerializer(ModelSerializer):
 class ForumDetailSerializer(ModelSerializer):
     forum_images = ForumImageSerializer(many=True, read_only=True, source="images")
     tags = TagSerializer(many=True, read_only=True)
-    province = serializers.CharField(source="province.province_name", read_only=True)
-    city = serializers.CharField(source="city.city_name", read_only=True)
-    author = serializers.SerializerMethodField(read_only=True)
+    user = serializers.SerializerMethodField(read_only=True)
     forum_comments = ForumCommentsSerializer(many=True, read_only=True)
 
-    province_id = serializers.PrimaryKeyRelatedField(
-        queryset=Province.objects.all(), write_only=True
-    )
-    city_id = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.all(), write_only=True
-    )
     tag_id = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all(), write_only=True, required=True
     )
@@ -154,10 +140,6 @@ class ForumDetailSerializer(ModelSerializer):
             "slug",
             "title",
             "content",
-            "province",
-            "province_id",
-            "city",
-            "city_id",
             "tags",
             "tag_id",
             "forum_images",
@@ -166,22 +148,21 @@ class ForumDetailSerializer(ModelSerializer):
             "created_at",
             "updated_at",
             "images",
-            "author",
+            "user",
             "forum_comments",
         )
-        read_only_fields = ("author", "slug", "total_like", "total_comment")
+        read_only_fields = ("user", "slug", "total_like", "total_comment")
 
-    def get_author(self, obj):
+    def get_user(self, obj):
         request = self.context.get("request")
         return {
-            "id": obj.author.id,
-            "username": obj.author.username,
-            "full_name": obj.author.user_information.full_name,
+            "id": obj.user.id,
+            "full_name": obj.user.user_information.full_name,
             "profile_picture": (
                 request.build_absolute_uri(
-                    obj.author.user_information.profile_picture.url
+                    obj.user.user_information.profile_picture.url
                 )
-                if obj.author.user_information.profile_picture
+                if obj.user.user_information.profile_picture
                 else None
             ),
         }
@@ -196,10 +177,8 @@ class ForumDetailSerializer(ModelSerializer):
     def create(self, validated_data):
         images = validated_data.pop("images", None)
         tags_ids = validated_data.pop("tag_id", [])
-        province = validated_data.pop("province_id")
-        city = validated_data.pop("city_id")
 
-        forum = Forum.objects.create(**validated_data, province=province, city=city)
+        forum = Forum.objects.create(**validated_data)
         images_obj = [
             ForumImage(forum=forum, image=image_data) for image_data in images
         ]
@@ -210,13 +189,7 @@ class ForumDetailSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop("tags", None)
-        province = validated_data.pop("province_id", None)
-        city = validated_data.pop("city_id", None)
         instance = super().update(instance, validated_data)
         if tags is not None:
             instance.tags.set(tags)  # Use set() to update the tags
-        if province is not None:
-            instance.province = province
-        if city is not None:
-            instance.city = city
         return instance

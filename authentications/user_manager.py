@@ -8,9 +8,13 @@ class UserManager(BaseUserManager):
     """
 
     @transaction.atomic
-    def create_user(self, username, email, password=None, oauth_provider=None):
-        if not username:
-            raise ValueError("Username should not be empty")
+    def create_user(self, email, password=None, oauth_provider=None, role=None):
+
+        if not role:
+            raise ValueError("Role should not be empty")
+
+        if not email:
+            raise ValueError("Email should not be empty")
 
         if not oauth_provider:
             raise ValueError("oauth_provider should not be empty")
@@ -20,26 +24,28 @@ class UserManager(BaseUserManager):
 
         if email:
             user = self.model(
-                username=username,
                 email=self.normalize_email(email=email),
                 oauth_provider=oauth_provider,
+                role=role,
             )
         else:
-            user = self.model(username=username, oauth_provider=oauth_provider)
+            user = self.model(oauth_provider=oauth_provider, role=role)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
     @transaction.atomic
-    def create_superuser(self, username, email, password=None, oauth_provider="email"):
+    def create_superuser(
+        self, email, password=None, oauth_provider="email", role="admin"
+    ):
         if not password:
             raise ValueError("Password should not be empty")
 
         user = self.create_user(
-            username=username,
             email=email,
             password=password,
             oauth_provider=oauth_provider,
+            role=role,
         )
         user.is_superuser = True
         user.is_staff = True

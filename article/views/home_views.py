@@ -12,7 +12,7 @@ class HomePageView(generics.ListAPIView):
         Prefetch(
             "article_category",
             queryset=Article.objects.all().select_related(
-                "author__user_information", "category"
+                "user__user_information", "category"
             ),
         )
     )

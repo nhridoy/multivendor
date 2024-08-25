@@ -192,9 +192,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "utils.extensions.custom_pagination.CustomPagination",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
-AUTHENTICATION_BACKENDS = [
-    "authentications.auth_backend.EmailPhoneUsernameAuthenticationBackend"
-]
+AUTHENTICATION_BACKENDS = ["authentications.auth_backend.EmailAuthenticationBackend"]
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=90),

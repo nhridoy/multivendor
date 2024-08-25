@@ -1,8 +1,8 @@
 from dj_rest_auth.jwt_auth import unset_jwt_cookies
 from django.conf import settings
-from django.contrib.auth import logout, password_validation
-from django.shortcuts import redirect
-from rest_framework import exceptions, generics, permissions, response, status, views
+from django.contrib.auth import logout
+from django.utils.translation import gettext as _
+from rest_framework import generics, response, status, views
 
 from authentications import serializers
 from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
@@ -25,10 +25,10 @@ class PasswordValidateView(views.APIView):
             serializer.validated_data.get("password"),
         ):
             return response.Response(
-                {"data": "Password Accepted"}, status=status.HTTP_200_OK
+                {"message": _("Password Accepted")}, status=status.HTTP_200_OK
             )
         return response.Response(
-            {"data": "Wrong Password"},
+            {"message": _("Wrong Password")},
             status=status.HTTP_406_NOT_ACCEPTABLE,
         )
 
@@ -42,9 +42,9 @@ class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = serializers.ChangePasswordSerializer
 
     @staticmethod
-    def _logout_on_password_change(request):
+    def _logout_on_password_change(request, message):
         resp = response.Response(
-            {"detail": "Password updated successfully"},
+            {"detail": message},
             status=status.HTTP_200_OK,
         )
         if settings.REST_SESSION_LOGIN:
@@ -55,11 +55,12 @@ class ChangePasswordView(generics.UpdateAPIView):
     def _change_password(self, request, user, password):
         user.set_password(password)
         user.save()
+        message = _("Password updated successfully")
         if settings.REST_AUTH.get("LOGOUT_ON_PASSWORD_CHANGE"):
-            self._logout_on_password_change(request=request)
+            self._logout_on_password_change(request=request, message=message)
 
         return response.Response(
-            {"detail": "Password updated successfully"},
+            {"detail": message},
             status=status.HTTP_200_OK,
         )
 
@@ -75,6 +76,3 @@ class ChangePasswordView(generics.UpdateAPIView):
             user=user,
             password=password,
         )
-
-
-# reset password

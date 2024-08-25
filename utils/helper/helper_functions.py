@@ -1,6 +1,6 @@
 import os
-import random
 from datetime import datetime
+from uuid import uuid4
 
 from django.core.validators import RegexValidator
 
@@ -16,5 +16,5 @@ def content_file_path(instance, filename):
     ext = filename.split(".")[-1]
     current_date = datetime.now()
     date_path = current_date.strftime("%Y-%m-%d")
-    unique_filename = f"{instance}-{instance.pk}.{ext}"
+    unique_filename = f"{instance}-{instance.pk}-{uuid4()}.{ext}"
     return os.path.join(model_name, date_path, unique_filename)

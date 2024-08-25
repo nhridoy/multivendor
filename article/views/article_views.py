@@ -44,7 +44,7 @@ class ArticleCategoryView(viewsets.ModelViewSet):
 class ArticleView(viewsets.ModelViewSet):
     queryset = (
         Article.objects.all()
-        .select_related("author__user_information", "category")
+        .select_related("user__user_information", "category")
         .prefetch_related(
             Prefetch(
                 "article_comments",
@@ -62,9 +62,9 @@ class ArticleView(viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.request.user.is_authenticated:
-            user_likes = ArticleLike.objects.filter(
-                author=self.request.user
-            ).values_list("article_id", flat=True)
+            user_likes = ArticleLike.objects.filter(user=self.request.user).values_list(
+                "article_id", flat=True
+            )
             context["user_likes"] = set(user_likes)
         else:
             context["user_likes"] = set()
@@ -87,7 +87,7 @@ class ArticleView(viewsets.ModelViewSet):
         return ArticleDetailSerializer  # I don't know what you want for create/destroy/update.
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(user=self.request.user)
 
 
 class ArticleLikeView(views.APIView):
@@ -95,7 +95,7 @@ class ArticleLikeView(views.APIView):
 
     def toggle_like(self, user):
         article = generics.get_object_or_404(Article, slug=self.kwargs.get("slug"))
-        like, created = ArticleLike.objects.get_or_create(article=article, author=user)
+        like, created = ArticleLike.objects.get_or_create(article=article, user=user)
         if created:
             article.total_like += 1
             data = "Liked"
@@ -121,7 +121,7 @@ class ArticleCommentView(generics.ListCreateAPIView):
                 article__slug=self.kwargs.get("slug"), parent_comment=None
             )
             .prefetch_related("replies__replies__replies__replies__replies")
-            .select_related("author__user_information")
+            .select_related("user__user_information")
         )
 
     @transaction.atomic()
@@ -132,5 +132,5 @@ class ArticleCommentView(generics.ListCreateAPIView):
 
         serializer.save(
             article=article,
-            author=self.request.user,
+            user=self.request.user,
         )

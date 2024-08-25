@@ -24,21 +24,19 @@ class ArticleCategory(BaseModel):
 class Article(BaseModel):
     slug = AutoSlugField(populate_from="title", unique=True)
     title = models.CharField(max_length=100)
-    square_thumbnail = models.ImageField(upload_to=content_file_path)
-    landscape_thumbnail = models.ImageField(
-        upload_to=content_file_path, blank=True, null=True
-    )
+    thumbnail = models.ImageField(upload_to=content_file_path, blank=True, null=True)
     short_content = models.TextField()
     content = HTMLField()
     category = models.ForeignKey(
         ArticleCategory,
         on_delete=models.PROTECT,
-        related_name="article_category",
+        related_name="articles",
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        related_name="article_author",
+        related_name="articles",
+        verbose_name="Article Author",
     )
     total_like = models.PositiveIntegerField(default=0, editable=False)
     total_comment = models.PositiveIntegerField(default=0, editable=False)
@@ -60,10 +58,11 @@ class ArticleComment(BaseModel):
         null=True,
         blank=True,
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        related_name="comments",
+        related_name="article_comments",
+        verbose_name="Comment by",
     )
 
     def clean(self):
@@ -81,21 +80,22 @@ class ArticleComment(BaseModel):
         return ArticleComment.objects.filter(comment=self)
 
     def __str__(self):
-        return f"Comment by {self.author} on {self.article}"
+        return f"Comment by {self.user.user_information.full_name} on {self.article}"
 
 
 class ArticleLike(BaseModel):
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, related_name="article_like"
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        related_name="article_like_author",
+        related_name="article_likes",
+        verbose_name="Liked by",
     )
 
     class Meta:
-        unique_together = (("article", "author"),)
+        unique_together = (("article", "user"),)
 
     def __str__(self):
-        return f"{self.author} like {self.article}"
+        return f"{self.user.user_information.full_name} like {self.article}"

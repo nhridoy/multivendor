@@ -5,11 +5,11 @@ from django.db.models import Q
 User = get_user_model()
 
 
-class EmailPhoneUsernameAuthenticationBackend(object):
+class EmailAuthenticationBackend(object):
     @staticmethod
     def authenticate(request, username=None, password=None):
         try:
-            user = User.objects.get(Q(username=username) | Q(email=username))
+            user = User.objects.get(email=username)
 
         except User.DoesNotExist:
             return None

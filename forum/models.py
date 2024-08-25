@@ -17,15 +17,13 @@ class Forum(BaseModel):
     slug = AutoSlugField(populate_from="title", unique=True)
     title = models.CharField(max_length=100)
     content = models.TextField()
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        null=True,
-        related_name="forum_author",
+        related_name="forums",
+        verbose_name="Forum Author",
     )
-    province = models.ForeignKey("options.Province", on_delete=models.PROTECT)
-    city = models.ForeignKey("options.City", on_delete=models.PROTECT)
-    tags = models.ManyToManyField(Tag, related_name="tags")
+    tags = models.ManyToManyField(Tag, related_name="forums")
     total_like = models.PositiveIntegerField(default=0, editable=False)
     total_comment = models.PositiveIntegerField(default=0, editable=False)
 
@@ -51,11 +49,11 @@ class ForumComment(BaseModel):
         null=True,
         blank=True,
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        null=True,
-        related_name="forum_comment_author",
+        related_name="forum_comments",
+        verbose_name="Comment by",
     )
 
     def clean(self):
@@ -73,16 +71,15 @@ class ForumComment(BaseModel):
         return ForumComment.objects.filter(comment=self)
 
     def __str__(self):
-        return f"Comment by {self.author} on {self.forum}"
+        return f"Comment by {self.user.user_information.full_name} on {self.forum}"
 
 
 class ForumLike(BaseModel):
     forum = models.ForeignKey(
-        Forum, on_delete=models.CASCADE, related_name="forum_like"
+        Forum, on_delete=models.CASCADE, related_name="forum_likes"
     )
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         "authentications.User",
         on_delete=models.PROTECT,
-        null=True,
-        related_name="forum_like_author",
+        related_name="forum_likes",
     )
