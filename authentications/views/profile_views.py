@@ -12,7 +12,6 @@ class ProfileViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         return User.objects.select_related(
             "user_information",
-            "teacher_information",
             "user_information__country",
             "user_information__province",
             "user_information__city",

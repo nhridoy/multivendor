@@ -149,7 +149,6 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         "user_information__country",
         "user_information__province",
         "user_information__city",
-        "teacher_information",
     )
     serializer_class = serializers.AdminUserSerializer
     filterset_fields = ["role"]

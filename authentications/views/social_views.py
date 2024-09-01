@@ -60,6 +60,7 @@ class GoogleLoginView(views.APIView):
             email=user_data.get("email"),
             name=user_data.get("name"),
             provider="google",
+            role="user",
         )
 
         return response.Response(tokens)
@@ -119,6 +120,7 @@ class KakaoLoginView(views.APIView):
             email=user_data.get("kakao_account").get("email"),
             name=user_data.get("kakao_account").get("profile").get("nickname"),
             provider="kakao",
+            role="user",
         )
 
         return response.Response(tokens)
@@ -198,6 +200,7 @@ class AppleLoginView(views.APIView):
                     email=email,
                     name=full_name,
                     provider="apple",
+                    role="user",
                 )
                 return response.Response(tokens)
 
