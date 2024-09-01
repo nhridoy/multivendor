@@ -70,7 +70,9 @@ class ResetPasswordView(generics.GenericAPIView):
                 user, "sms", True, verification_method=verification_method
             )
         else:
-            return self.email_sender_helper(user, get_origin(self), verification_method)
+            return self.email_sender_helper(
+                user, get_origin(self.request), verification_method
+            )
 
 
 class ResetPasswordCheckView(generics.GenericAPIView):

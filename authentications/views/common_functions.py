@@ -2,12 +2,14 @@ import datetime
 import random
 from typing import Literal
 
-from dj_rest_auth.jwt_auth import set_jwt_cookies
+from dj_rest_auth.app_settings import api_settings
 from django.conf import settings
 from django.contrib.auth import login
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from pyotp import TOTP
 from rest_framework import exceptions, response, status
+from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentications.models import User
@@ -16,13 +18,82 @@ from utils.modules import EmailSender
 from utils.modules.solapi_sms import SolApiClient
 
 
-def get_origin(self):
+def get_origin(request):
     try:
-        return self.request.headers["origin"]
+        return request.headers["origin"]
     except Exception as e:
         raise exceptions.PermissionDenied(
             detail=_("Origin not found on request header")
         ) from e
+
+
+def set_jwt_access_cookie(resp, access_token, domain):
+    cookie_name = api_settings.JWT_AUTH_COOKIE
+    access_token_expiration = timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME
+    cookie_secure = api_settings.JWT_AUTH_SECURE
+    cookie_httponly = api_settings.JWT_AUTH_HTTPONLY
+    cookie_samesite = api_settings.JWT_AUTH_SAMESITE
+    cookie_domain = domain or api_settings.JWT_AUTH_COOKIE_DOMAIN
+
+    if cookie_name:
+        resp.set_cookie(
+            cookie_name,
+            access_token,
+            expires=access_token_expiration,
+            secure=cookie_secure,
+            httponly=cookie_httponly,
+            samesite=cookie_samesite,
+            domain=cookie_domain,
+        )
+
+
+def set_jwt_refresh_cookie(resp, refresh_token, domain):
+    refresh_token_expiration = timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME
+    refresh_cookie_name = api_settings.JWT_AUTH_REFRESH_COOKIE
+    refresh_cookie_path = api_settings.JWT_AUTH_REFRESH_COOKIE_PATH
+    cookie_secure = api_settings.JWT_AUTH_SECURE
+    cookie_httponly = api_settings.JWT_AUTH_HTTPONLY
+    cookie_samesite = api_settings.JWT_AUTH_SAMESITE
+    cookie_domain = domain or api_settings.JWT_AUTH_COOKIE_DOMAIN
+
+    if refresh_cookie_name:
+        resp.set_cookie(
+            refresh_cookie_name,
+            refresh_token,
+            expires=refresh_token_expiration,
+            secure=cookie_secure,
+            httponly=cookie_httponly,
+            samesite=cookie_samesite,
+            path=refresh_cookie_path,
+            domain=cookie_domain,
+        )
+
+
+def set_jwt_cookies(origin, resp, access_token, refresh_token):
+    try:
+        domain = origin.split("//")[1].split(":")[0]
+    except Exception as e:
+        domain = None
+    set_jwt_access_cookie(resp, access_token, domain)
+    set_jwt_refresh_cookie(resp, refresh_token, domain)
+
+
+def unset_jwt_cookies(resp, domain):
+    cookie_name = api_settings.JWT_AUTH_COOKIE
+    refresh_cookie_name = api_settings.JWT_AUTH_REFRESH_COOKIE
+    refresh_cookie_path = api_settings.JWT_AUTH_REFRESH_COOKIE_PATH
+    cookie_samesite = api_settings.JWT_AUTH_SAMESITE
+    cookie_domain = domain or api_settings.JWT_AUTH_COOKIE_DOMAIN
+
+    if cookie_name:
+        resp.delete_cookie(cookie_name, samesite=cookie_samesite, domain=cookie_domain)
+    if refresh_cookie_name:
+        resp.delete_cookie(
+            refresh_cookie_name,
+            path=refresh_cookie_path,
+            samesite=cookie_samesite,
+            domain=cookie_domain,
+        )
 
 
 def direct_login(request, user: User, token_data):
@@ -32,7 +103,8 @@ def direct_login(request, user: User, token_data):
     resp = response.Response()
 
     set_jwt_cookies(
-        response=resp,
+        origin=get_origin(request),
+        resp=resp,
         access_token=token_data.get(
             settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
         ),

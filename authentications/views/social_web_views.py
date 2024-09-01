@@ -5,7 +5,6 @@ from datetime import timedelta
 import jwt
 import requests
 import requests.exceptions
-from dj_rest_auth.jwt_auth import set_jwt_cookies
 from django.conf import settings
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -24,6 +23,8 @@ from social_django.utils import load_backend, load_strategy
 
 from authentications.register import register_social_user, save_image_from_url
 from authentications.serializers import SocialLoginSerializer
+
+from .common_functions import set_jwt_cookies
 
 
 class KakaoWebLoginView(views.APIView):
@@ -85,7 +86,7 @@ class KakaoCallbackView(views.APIView):
             resp = redirect(redirect_to)
 
             set_jwt_cookies(
-                response=resp,
+                resp=resp,
                 access_token=tokens.get(
                     settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
                 ),

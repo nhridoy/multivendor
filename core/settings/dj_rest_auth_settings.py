@@ -56,6 +56,7 @@ REST_AUTH = {
     "JWT_AUTH_COOKIE": "access",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
     "JWT_AUTH_REFRESH_COOKIE_PATH": "/",
+    # "JWT_AUTH_COOKIE_DOMAIN": ".potentialai.com",
     "JWT_AUTH_SECURE": not DEBUG,  # <-- If set to True, the cookie will only be sent through https scheme.
     "JWT_AUTH_HTTPONLY": True,  # <-- If set to True, the client-side JavaScript will not be able to access the cookie.
     "JWT_AUTH_SAMESITE": "Lax",

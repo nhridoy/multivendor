@@ -60,7 +60,7 @@ class RegistrationView(viewsets.GenericViewSet):
 
     def _verification_email(self, user):
         context = {
-            "url": generate_link(user, get_origin(self), "verify-email"),
+            "url": generate_link(user, get_origin(self.request), "verify-email"),
         }
 
         is_email_verification_required = settings.REQUIRED_EMAIL_VERIFICATION

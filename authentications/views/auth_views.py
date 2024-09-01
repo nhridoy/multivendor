@@ -1,11 +1,6 @@
 import contextlib
 from typing import Any
 
-from dj_rest_auth.jwt_auth import (
-    set_jwt_access_cookie,
-    set_jwt_refresh_cookie,
-    unset_jwt_cookies,
-)
 from django.conf import settings
 from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
@@ -33,7 +28,11 @@ from .common_functions import (
     direct_login,
     generate_and_send_otp,
     generate_token,
+    get_origin,
     get_token,
+    set_jwt_access_cookie,
+    set_jwt_refresh_cookie,
+    unset_jwt_cookies,
 )
 
 
@@ -76,19 +75,21 @@ class MyTokenRefreshView(generics.GenericAPIView):
     authentication_classes = ()
 
     @staticmethod
-    def _set_cookie(resp, serializer):
+    def _set_cookie(resp, serializer, domain):
         if refresh := serializer.validated_data.get(
             settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
         ):  # noqa
             set_jwt_refresh_cookie(
-                response=resp,
+                resp=resp,
                 refresh_token=refresh,
+                domain=domain,
             )
         set_jwt_access_cookie(
-            response=resp,
+            resp=resp,
             access_token=serializer.validated_data.get(
                 settings.REST_AUTH.get("JWT_AUTH_COOKIE")
             ),  # noqa
+            domain=domain,
         )
 
     def post(self, request, *args, **kwargs):
@@ -101,7 +102,12 @@ class MyTokenRefreshView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         resp = Response()
-        self._set_cookie(resp=resp, serializer=serializer)
+
+        try:
+            domain = get_origin(self.request).split("//")[1].split(":")[0]
+        except Exception as e:
+            domain = None
+        self._set_cookie(resp=resp, serializer=serializer, domain=domain)
         resp.data = serializer.validated_data
         resp.status_code = status.HTTP_200_OK
         return resp
@@ -145,7 +151,12 @@ class LogoutView(views.APIView):
         if settings.REST_AUTH.get("USE_JWT", True):
             cookie_name = settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access")
 
-            unset_jwt_cookies(resp)
+            try:
+                domain = get_origin(request).split("//")[1].split(":")[0]
+            except Exception as e:
+                domain = None
+
+            unset_jwt_cookies(resp, domain)
 
             if "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
