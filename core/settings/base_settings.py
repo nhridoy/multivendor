@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "debug_toolbar",  # django debug toolbar
     "dj_rest_auth",
     "tinymce",
+    "django_cleanup.apps.CleanupConfig",
+    "storages",
     # created apps
     "authentications",
     "chat",
@@ -116,7 +118,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ["authentications.auth_backend.EmailAuthenticationBackend"]
+AUTHENTICATION_BACKENDS = [
+    # "authentications.auth_backend.EmailAuthenticationBackend",
+    "social_core.backends.kakao.KakaoOAuth2",
+    "social_core.backends.naver.NaverOAuth2",
+    "social_core.backends.google.GoogleOAuth2",
+    "social_core.backends.github.GithubOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -129,3 +138,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+USE_X_FORWARDED_HOST = os.getenv("USE_X_FORWARDED_HOST") == "True"
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT") == "True"
+if USE_X_FORWARDED_HOST and SECURE_SSL_REDIRECT:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

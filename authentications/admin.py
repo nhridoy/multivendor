@@ -66,6 +66,14 @@ class AdminUser(UserAdmin):
         ),
     )
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields + (
+                "id",
+                "email",
+            )
+        return self.readonly_fields
+
 
 class AdminUserInformation(admin.ModelAdmin):
     ordering = ("-created_at",)

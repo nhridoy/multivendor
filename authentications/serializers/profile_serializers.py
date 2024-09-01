@@ -1,8 +1,11 @@
+import contextlib
+
 from django.db import transaction
 from django.db.models import Avg
 from rest_framework import serializers
 
 from authentications.models import User, UserInformation, UserTwoStepVerification
+from options.models import City, Country, Language, Province
 from options.serializers import (
     CitySerializer,
     CountrySerializer,
@@ -10,15 +13,15 @@ from options.serializers import (
     ProvinceSerializer,
 )
 
+from .helper_functions import update_related_instance
+
 
 class UserInformationSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(source="user.email", read_only=True)
-
     class Meta:
         model = UserInformation
         fields = (
-            "email",
             "full_name",
+            "gender",
             "country",
             "province",
             "city",
@@ -27,24 +30,9 @@ class UserInformationSerializer(serializers.ModelSerializer):
             "date_of_birth",
         )
 
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-
-        # remove city information from the province if province is not null
-        if instance.province:
-            ret["province"] = ProvinceSerializer(instance.province).data
-            ret["province"].pop("cities")
-        if instance.city:
-            ret["city"] = CitySerializer(instance.city).data
-        if instance.nationality:
-            ret["nationality"] = CountrySerializer(instance.nationality).data
-        if instance.language:
-            ret["language"] = LanguageSerializer(instance.language).data
-        return ret
-
 
 class UserSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source="user_information.name")
+    full_name = serializers.CharField(source="user_information.full_name")
     profile_picture = serializers.ImageField(source="user_information.profile_picture")
     date_of_birth = serializers.DateField(source="user_information.date_of_birth")
     gender = serializers.ChoiceField(
@@ -61,7 +49,7 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "phone_number",
-            "name",
+            "full_name",
             "profile_picture",
             "date_of_birth",
             "gender",
@@ -70,7 +58,6 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
             "is_active",
             "is_staff",
-            # "user_information"
         )
         read_only_fields = (
             "date_joined",
@@ -85,12 +72,52 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if information_user := validated_data.pop("user_information", None):
             # Update the UserInformation fields or related object
-            user_information = instance.user_information
-            for key, value in information_user.items():
-                setattr(user_information, key, value)
-            user_information.save()
+            update_related_instance(instance, information_user, "user_information")
 
         return instance
+
+
+class PersonalProfileSerializer(UserSerializer):
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.all(),
+        source="user_information.country",
+        required=False,
+    )
+    province = serializers.PrimaryKeyRelatedField(
+        queryset=Province.objects.all(),
+        source="user_information.province",
+        required=False,
+    )
+    city = serializers.PrimaryKeyRelatedField(
+        queryset=City.objects.all(),
+        source="user_information.city",
+        required=False,
+    )
+    language = serializers.PrimaryKeyRelatedField(
+        queryset=Language.objects.all(),
+        source="user_information.language",
+        required=False,
+    )
+    phone_number = serializers.CharField(source="user_information.phone_number")
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + (
+            "country",
+            "province",
+            "city",
+            "language",
+            "phone_number",
+        )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["country"] = CountrySerializer(instance.user_information.country).data
+        data["province"] = ProvinceSerializer(instance.user_information.province).data
+        with contextlib.suppress(AttributeError, KeyError):
+            data["province"].pop("cities")
+        data["city"] = CitySerializer(instance.user_information.city).data
+        data["language"] = LanguageSerializer(instance.user_information.language).data
+        return data
 
 
 class SendInvitationSerializer(serializers.Serializer):

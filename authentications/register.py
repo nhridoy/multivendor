@@ -31,7 +31,7 @@ def get_tokens_for_user(user):
     }
 
 
-def register_social_user(profile_image_url, provider, email, name):
+def register_social_user(profile_image_url, provider, email, name, role):
     filtered_user = User.objects.filter(email=email)
 
     if len(filtered_user):
@@ -52,6 +52,8 @@ def register_social_user(profile_image_url, provider, email, name):
         user = {
             "email": email,
             "oauth_provider": provider,
+            "role": role,
+            "is_verified": True,
         }
         user = User.objects.create_user(**user)
         user.user_information.full_name = name

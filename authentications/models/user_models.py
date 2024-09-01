@@ -13,10 +13,11 @@ from core.models import BaseModel
 from utils.helper import content_file_path
 
 USER_OAUTH_PROVIDER = (
-    ("google", "google"),
-    ("apple", "apple"),
-    ("kakao", "kakao"),
-    ("email", "email"),
+    ("google", "Google"),
+    ("github", "Github"),
+    ("kakao", "Kakao"),
+    ("naver", "Naver"),
+    ("email", "Email"),
 )
 
 ROLE = (

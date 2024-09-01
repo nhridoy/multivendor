@@ -35,6 +35,7 @@ class RegistrationView(viewsets.GenericViewSet):
     serializer_class = serializers.RegistrationSerializer
     queryset = User.objects.all()
     permission_classes = ()
+
     # authentication_classes = ()
 
     # http_method_names = ["post"]
@@ -64,7 +65,7 @@ class RegistrationView(viewsets.GenericViewSet):
 
         is_email_verification_required = settings.REQUIRED_EMAIL_VERIFICATION
 
-        if not is_email_verification_required:
+        if is_email_verification_required:
             send_verification_email(user, context)
         if self.action == "create":
             resp = self._login(
@@ -139,3 +140,25 @@ class RegistrationView(viewsets.GenericViewSet):
         ) as e:
             raise exceptions.ValidationError(detail={"detail": e}) from e
         return response.Response({"data": _("Email Verification Successful")})
+
+
+class AdminUserViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAdminUser,)
+    queryset = User.objects.all().select_related(
+        "user_information",
+        "user_information__country",
+        "user_information__province",
+        "user_information__city",
+        "teacher_information",
+    )
+    serializer_class = serializers.AdminUserSerializer
+    filterset_fields = ["role"]
+    http_method_names = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "head",
+        "options",
+        "trace",
+    ]

@@ -42,7 +42,7 @@ class GoogleLoginView(views.APIView):
                 "code": serializer.validated_data.get("code"),
                 "client_id": settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                 "client_secret": settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
-                "redirect_uri": settings.GOOGLE_REDIRECT_URL,
+                "redirect_uri": request.build_absolute_uri("/api/auth/google/"),
                 "grant_type": "authorization_code",
             }
             resp = requests.post(settings.GOOGLE_TOKEN_URL, data=data)
@@ -98,7 +98,7 @@ class KakaoLoginView(views.APIView):
                 data = {
                     "code": serializer.validated_data.get("code"),
                     "client_id": settings.SOCIAL_AUTH_KAKAO_APP_KEY,
-                    "redirect_uri": settings.KAKAO_REDIRECT_URL,
+                    "redirect_uri": request.build_absolute_uri("/api/auth/kakao/"),
                     "grant_type": "authorization_code",
                 }
                 resp = requests.post(settings.KAKAO_TOKEN_URL, data=data)
@@ -162,7 +162,7 @@ class AppleLoginView(views.APIView):
                 "code": serializer.validated_data.get("code"),
                 "client_id": client_id,
                 "client_secret": self.get_key_and_secret(client_id),
-                "redirect_uri": settings.APPLE_REDIRECT_URL,
+                "redirect_uri": request.build_absolute_uri("/api/auth/apple/"),
                 "grant_type": "authorization_code",
             }
             resp = requests.post(
