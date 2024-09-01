@@ -77,7 +77,7 @@ class KakaoCallbackView(views.APIView):
                 email=user_data.get("kakao_account").get("email"),
                 name=user_data.get("kakao_account").get("profile").get("nickname"),
                 provider="kakao",
-                role="student",
+                role="user",
             )
 
             # Set cookies and redirect to frontend
@@ -151,7 +151,7 @@ class NaverCallbackView(views.APIView):
                 email=user_data.get("email"),
                 name=user_data.get("nickname"),
                 provider="naver",
-                role="student",
+                role="user",
             )
 
             # Set cookies and redirect to frontend
@@ -223,7 +223,7 @@ class GoogleCallbackView(views.APIView):
                 email=user.get("email"),
                 name=user.get("name"),
                 provider="google",
-                role="student",
+                role="user",
             )
 
             # Set cookies and redirect to frontend
@@ -299,7 +299,7 @@ class GithubCallbackView(views.APIView):
                 name=user_data.get("name")
                 or user_data.get("login"),  # GitHub might not provide name
                 provider="github",
-                role="student",
+                role="user",
             )
 
             # Set cookies and redirect to frontend
