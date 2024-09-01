@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "forum",
     "support",
     "options",
+    "site_settings",
 ]
 
 MIDDLEWARE = [
