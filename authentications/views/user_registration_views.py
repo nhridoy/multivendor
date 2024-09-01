@@ -18,6 +18,7 @@ from authentications import serializers
 from authentications.models import User
 from authentications.views.common_functions import (
     direct_login,
+    extract_token,
     generate_link,
     get_origin,
     get_token,
@@ -41,18 +42,9 @@ class RegistrationView(viewsets.GenericViewSet):
     # http_method_names = ["post"]
 
     def _login(self, user, message: str):
-        token = get_token(user)
+        token = extract_token(get_token(user))
         resp = direct_login(
-            request=self.request,
-            user=user,
-            token_data={
-                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
-                    token
-                ),
-                settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
-                    token.access_token
-                ),
-            },
+            request=self.request, resp=response.Response(), user=user, token_data=token
         )
 
         resp.data["data"]["message"] = message

@@ -17,6 +17,8 @@ from social_core.backends.kakao import KakaoOAuth2
 from authentications.register import register_social_user, save_image_from_url
 from authentications.serializers import SocialLoginSerializer
 
+from .common_functions import extract_token, get_token
+
 
 class GoogleLoginView(views.APIView):
     permission_classes = ()
@@ -55,7 +57,7 @@ class GoogleLoginView(views.APIView):
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
 
-        tokens = register_social_user(
+        user = register_social_user(
             profile_image_url=user_data.get("picture"),
             email=user_data.get("email"),
             name=user_data.get("name"),
@@ -63,7 +65,7 @@ class GoogleLoginView(views.APIView):
             role="user",
         )
 
-        return response.Response(tokens)
+        return response.Response(extract_token(get_token(user)))
 
 
 class KakaoLoginView(views.APIView):
@@ -113,7 +115,7 @@ class KakaoLoginView(views.APIView):
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
 
-        tokens = register_social_user(
+        user = register_social_user(
             profile_image_url=user_data.get("kakao_account")
             .get("profile")
             .get("profile_image_url"),
@@ -123,7 +125,7 @@ class KakaoLoginView(views.APIView):
             role="user",
         )
 
-        return response.Response(tokens)
+        return response.Response(extract_token(get_token(user)))
 
 
 class AppleLoginView(views.APIView):
@@ -195,14 +197,14 @@ class AppleLoginView(views.APIView):
                 )
                 email = user.get("email") or decoded.get("email")
 
-                tokens = register_social_user(
+                user = register_social_user(
                     profile_image_url=None,
                     email=email,
                     name=full_name,
                     provider="apple",
                     role="user",
                 )
-                return response.Response(tokens)
+                return response.Response(extract_token(get_token(user)))
 
             else:
                 raise exceptions.AuthenticationFailed(detail=resp.json())

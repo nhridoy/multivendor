@@ -26,6 +26,7 @@ from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 
 from .common_functions import (
     direct_login,
+    extract_token,
     generate_and_send_otp,
     generate_token,
     get_origin,
@@ -62,7 +63,7 @@ class LoginView(TokenObtainPairView):
             else:
                 return generate_and_send_otp(user, otp_method, True)
         else:
-            return direct_login(request, user, serializer.validated_data[0])
+            return direct_login(request, Response(), user, serializer.validated_data[0])
 
 
 class MyTokenRefreshView(generics.GenericAPIView):
@@ -212,19 +213,8 @@ class OTPLoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.user
 
-        token = get_token(user)
-        return direct_login(
-            request,
-            user,
-            {
-                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
-                    token
-                ),
-                settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
-                    token.access_token
-                ),
-            },
-        )
+        token = extract_token(get_token(user))
+        return direct_login(request, Response(), user, token)
 
 
 class OTPCheckView(views.APIView):

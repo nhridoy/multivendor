@@ -24,7 +24,7 @@ from social_django.utils import load_backend, load_strategy
 from authentications.register import register_social_user, save_image_from_url
 from authentications.serializers import SocialLoginSerializer
 
-from .common_functions import set_jwt_cookies
+from .common_functions import direct_login, extract_token, get_token, set_jwt_cookies
 
 
 class KakaoWebLoginView(views.APIView):
@@ -71,7 +71,7 @@ class KakaoCallbackView(views.APIView):
             resp = requests.post(settings.KAKAO_TOKEN_URL, data=data)
             user_data = kakao_backend.user_data(resp.json().get("access_token"))
 
-            tokens = register_social_user(
+            user = register_social_user(
                 profile_image_url=user_data.get("kakao_account")
                 .get("profile")
                 .get("profile_image_url"),
@@ -85,16 +85,9 @@ class KakaoCallbackView(views.APIView):
             redirect_to = request.session.get("redirect_to")
             resp = redirect(redirect_to)
 
-            set_jwt_cookies(
-                resp=resp,
-                access_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
-                ),
-                refresh_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
-                ),
+            return direct_login(
+                request, resp, user, extract_token(get_token(user)), True
             )
-            return resp
 
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
@@ -147,7 +140,7 @@ class NaverCallbackView(views.APIView):
 
             user_data = naver_backend.user_data(access_token)
 
-            tokens = register_social_user(
+            user = register_social_user(
                 profile_image_url=user_data.get("profile_image"),
                 email=user_data.get("email"),
                 name=user_data.get("nickname"),
@@ -159,16 +152,9 @@ class NaverCallbackView(views.APIView):
             redirect_to = request.session.get("redirect_to")
             resp = redirect(redirect_to)
 
-            set_jwt_cookies(
-                response=resp,
-                access_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
-                ),
-                refresh_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
-                ),
+            return direct_login(
+                request, resp, user, extract_token(get_token(user)), True
             )
-            return resp
 
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
@@ -219,7 +205,7 @@ class GoogleCallbackView(views.APIView):
             resp = requests.post(settings.GOOGLE_TOKEN_URL, data=data)
             user = google_backend.user_data(resp.json().get("access_token"))
 
-            tokens = register_social_user(
+            user = register_social_user(
                 profile_image_url=user.get("picture"),
                 email=user.get("email"),
                 name=user.get("name"),
@@ -231,16 +217,9 @@ class GoogleCallbackView(views.APIView):
             redirect_to = request.session.get("redirect_to")
             resp = redirect(redirect_to)
 
-            set_jwt_cookies(
-                response=resp,
-                access_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
-                ),
-                refresh_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
-                ),
+            return direct_login(
+                request, resp, user, extract_token(get_token(user)), True
             )
-            return resp
 
         except Exception as e:
             raise exceptions.AuthenticationFailed(detail=str(e))
@@ -294,7 +273,7 @@ class GithubCallbackView(views.APIView):
 
             user_data = github_backend.user_data(access_token)
 
-            tokens = register_social_user(
+            user = register_social_user(
                 profile_image_url=user_data.get("avatar_url"),
                 email=user_data.get("email"),
                 name=user_data.get("name")
@@ -307,16 +286,9 @@ class GithubCallbackView(views.APIView):
             redirect_to = request.session.get("redirect_to")
             resp = redirect(redirect_to)
 
-            set_jwt_cookies(
-                response=resp,
-                access_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),
-                ),
-                refresh_token=tokens.get(
-                    settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
-                ),
+            return direct_login(
+                request, resp, user, extract_token(get_token(user)), True
             )
-            return resp
 
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e

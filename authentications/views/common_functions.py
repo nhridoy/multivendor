@@ -96,11 +96,11 @@ def unset_jwt_cookies(resp, domain):
         )
 
 
-def direct_login(request, user: User, token_data):
+def direct_login(request, resp, user: User, token_data, social: bool = False):
     if settings.REST_AUTH.get("SESSION_LOGIN", False):
         login(request, user)
 
-    resp = response.Response()
+    # resp = response.Response()
 
     set_jwt_cookies(
         origin=get_origin(request),
@@ -112,8 +112,9 @@ def direct_login(request, user: User, token_data):
             settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"),
         ),
     )
-    resp.data = {"data": token_data, "detail": _("Logged in successfully")}
-    resp.status_code = status.HTTP_200_OK
+    if not social:
+        resp.data = {"data": token_data, "detail": _("Logged in successfully")}
+        resp.status_code = status.HTTP_200_OK
     return resp
 
 
@@ -198,3 +199,14 @@ def get_token(user):
     token["is_active"] = user.is_active
     token["is_superuser"] = user.is_superuser
     return token
+
+
+def extract_token(refresh_token: RefreshToken) -> dict:
+    return {
+        settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
+            refresh_token
+        ),
+        settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
+            refresh_token.access_token
+        ),
+    }
