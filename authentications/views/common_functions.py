@@ -69,11 +69,11 @@ def set_jwt_refresh_cookie(resp, refresh_token, domain):
         )
 
 
-def set_jwt_cookies(origin, resp, access_token, refresh_token):
-    try:
-        domain = origin.split("//")[1].split(":")[0]
-    except Exception as e:
-        domain = None
+def set_jwt_cookies(domain: str | None, resp, access_token, refresh_token):
+    # try:
+    #     domain = origin.split("//")[1].split(":")[0]
+    # except Exception as e:
+    #     domain = None
     set_jwt_access_cookie(resp, access_token, domain)
     set_jwt_refresh_cookie(resp, refresh_token, domain)
 
@@ -101,9 +101,16 @@ def direct_login(request, resp, user: User, token_data, social: bool = False):
         login(request, user)
 
     # resp = response.Response()
+    from urllib.parse import urlparse
+
+    # print(request.headers.get("origin"))
+    # print(request.META.get('HTTP_ORIGIN', ''))
+    # origin = get_origin(request)
+    # print(urlparse(origin).netloc if origin else None)
 
     set_jwt_cookies(
-        origin=get_origin(request),
+        # origin=get_origin(request),
+        domain=None,
         resp=resp,
         access_token=token_data.get(
             settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"),

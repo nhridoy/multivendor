@@ -104,11 +104,11 @@ class MyTokenRefreshView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         resp = Response()
 
-        try:
-            domain = get_origin(self.request).split("//")[1].split(":")[0]
-        except Exception as e:
-            domain = None
-        self._set_cookie(resp=resp, serializer=serializer, domain=domain)
+        # try:
+        #     domain = get_origin(self.request).split("//")[1].split(":")[0]
+        # except Exception as e:
+        #     domain = None
+        self._set_cookie(resp=resp, serializer=serializer, domain=None)
         resp.data = serializer.validated_data
         resp.status_code = status.HTTP_200_OK
         return resp
@@ -152,12 +152,12 @@ class LogoutView(views.APIView):
         if settings.REST_AUTH.get("USE_JWT", True):
             cookie_name = settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access")
 
-            try:
-                domain = get_origin(request).split("//")[1].split(":")[0]
-            except Exception as e:
-                domain = None
+            # try:
+            #     domain = get_origin(request).split("//")[1].split(":")[0]
+            # except Exception as e:
+            #     domain = None
 
-            unset_jwt_cookies(resp, domain)
+            unset_jwt_cookies(resp, None)
 
             if "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
