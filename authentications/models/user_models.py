@@ -9,7 +9,7 @@ from authentications.user_manager import UserManager
 # ========****************========
 # Custom authentications user model
 # ========****************========
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
 from utils.helper import content_file_path
 
 USER_OAUTH_PROVIDER = (
@@ -91,8 +91,9 @@ class UserInformation(BaseModel):
     full_name = models.CharField(
         max_length=100, verbose_name="Full Name", blank=True, null=True
     )
-    profile_picture = models.ImageField(
-        upload_to=content_file_path,
+    profile_picture = CompressedImageField(
+        quality=75,
+        width=1920,
         blank=True,
         null=True,
     )

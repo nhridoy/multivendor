@@ -1,6 +1,6 @@
 from django.db import models
 
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
 from utils.helper import content_file_path
 
 
@@ -15,7 +15,7 @@ class Banner(BaseModel):
     short_text = models.CharField(max_length=255)
     long_text = models.CharField(max_length=255)
     background_color = models.CharField(max_length=8)
-    image = models.ImageField(upload_to=content_file_path)
+    image = CompressedImageField(quality=75, width=1920)
     link = models.URLField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
 

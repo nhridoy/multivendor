@@ -1,7 +1,7 @@
 from autoslug import AutoSlugField
 from django.db import models
 
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
 from utils.helper import content_file_path
 
 
@@ -10,7 +10,7 @@ class SiteInformation(BaseModel):
     Model for storing site information, so that these can change without touching the code.
     """
 
-    logo = models.ImageField(upload_to=content_file_path)
+    logo = CompressedImageField(quality=75, width=1920)
     title = models.CharField(max_length=255)
     description = models.TextField()
     keywords = models.TextField()

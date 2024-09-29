@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from tinymce.models import HTMLField
 
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
 from utils.helper import content_file_path
 
 # Create your models here.
@@ -11,7 +11,7 @@ from utils.helper import content_file_path
 
 class ArticleCategory(BaseModel):
     name = models.CharField(max_length=100, blank=True)
-    icon = models.ImageField(upload_to=content_file_path)
+    icon = CompressedImageField(quality=75, width=1920)
     description = models.TextField()
 
     class Meta:
@@ -24,7 +24,7 @@ class ArticleCategory(BaseModel):
 class Article(BaseModel):
     slug = AutoSlugField(populate_from="title", unique=True)
     title = models.CharField(max_length=100)
-    thumbnail = models.ImageField(upload_to=content_file_path, blank=True, null=True)
+    thumbnail = CompressedImageField(quality=75, width=1920, blank=True, null=True)
     short_content = models.TextField()
     content = HTMLField()
     category = models.ForeignKey(
@@ -47,7 +47,7 @@ class Article(BaseModel):
 
 class ArticleComment(BaseModel):
     content = models.TextField()
-    image = models.ImageField(upload_to=content_file_path, blank=True, null=True)
+    image = CompressedImageField(quality=75, width=1920, blank=True, null=True)
     article = models.ForeignKey(
         Article, on_delete=models.CASCADE, related_name="article_comments"
     )
