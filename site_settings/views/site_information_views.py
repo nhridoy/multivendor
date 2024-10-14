@@ -1,10 +1,3 @@
-from course.models import (
-    Community,
-    Course,
-    CourseProgress,
-    Review,
-    StudentContentProgress,
-)
 from rest_framework import response, viewsets
 
 from authentications.models import User
@@ -48,35 +41,35 @@ class DashboardViewSet(viewsets.ViewSet):
     http_method_names = ["get", "head", "options"]
 
     def list(self, request):
-        course = Course.objects.all().prefetch_related(
-            "enrollments", "reviews", "course_progresses"
-        )
-
-        avg_review = 0
-        total_review = 0
-        total_rating = 0
-        avg_course_progress_rate = 0
-        total_course_progress_rate = 0
-
-        for c in course:
-            review = c.reviews.all()
-            total_review += review.count()
-            for r in review:
-                total_rating += r.rating
-            course_progress = c.course_progresses.all()
-            for cp in course_progress:
-                total_course_progress_rate += cp.progress
-
-        if total_review:
-            avg_review = total_rating / total_review
-
-        if total_course_progress_rate:
-            avg_course_progress_rate = total_course_progress_rate / course.count()
-
-        data = {
-            "number_of_students": User.objects.filter(role="student").count(),
-            "average_course_progress_rate": avg_course_progress_rate,
-            "average_course_rating": avg_review,
-            "community_question_count": Community.objects.all().count(),
-        }
-        return response.Response(data)
+        # course = Course.objects.all().prefetch_related(
+        #     "enrollments", "reviews", "course_progresses"
+        # )
+        #
+        # avg_review = 0
+        # total_review = 0
+        # total_rating = 0
+        # avg_course_progress_rate = 0
+        # total_course_progress_rate = 0
+        #
+        # for c in course:
+        #     review = c.reviews.all()
+        #     total_review += review.count()
+        #     for r in review:
+        #         total_rating += r.rating
+        #     course_progress = c.course_progresses.all()
+        #     for cp in course_progress:
+        #         total_course_progress_rate += cp.progress
+        #
+        # if total_review:
+        #     avg_review = total_rating / total_review
+        #
+        # if total_course_progress_rate:
+        #     avg_course_progress_rate = total_course_progress_rate / course.count()
+        #
+        # data = {
+        #     "number_of_students": User.objects.filter(role="student").count(),
+        #     "average_course_progress_rate": avg_course_progress_rate,
+        #     "average_course_rating": avg_review,
+        #     "community_question_count": Community.objects.all().count(),
+        # }
+        return response.Response("data")

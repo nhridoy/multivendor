@@ -1,20 +1,18 @@
-import os
-
-from .base_settings import DEBUG, PROJECT_NAME
+from .base_settings import PROJECT_NAME, env
 
 # -------------------------------------
 # EMAIL: configurations
 # -------------------------------------
-if os.getenv("USE_PRODUCTION_EMAIL", "False") != "True":
+if env.bool("USE_PRODUCTION_EMAIL", False):
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS") == "True"
-EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL") == "True"
-DEFAULT_FROM_EMAIL = os.getenv(
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env.int("EMAIL_PORT")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS")
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL")
+DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default=f"{PROJECT_NAME} <{EMAIL_HOST_USER}>"
 )

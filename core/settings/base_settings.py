@@ -1,5 +1,9 @@
-import os
 from pathlib import Path
+
+from environs import Env
+
+env = Env()
+env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -11,19 +15,19 @@ APP_MEDIA_ROOT = BASE_DIR.joinpath("media")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-PROJECT_NAME = os.getenv("PROJECT_NAME")
+PROJECT_NAME = env("PROJECT_NAME")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY")
 
-FERNET_SECRET_KEY = os.getenv(
-    "FERNET_SECRET_KEY", default="bhcTDnLm8eii39PHQ0g34uyDfxiSBIq__YQtPmufkFg="
+FERNET_SECRET_KEY = env(
+    "FERNET_SECRET_KEY", "bhcTDnLm8eii39PHQ0g34uyDfxiSBIq__YQtPmufkFg="
 )  # Encryption Secret Key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "True"
+DEBUG = env.bool("DEBUG", False)
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
 
@@ -140,7 +144,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-USE_X_FORWARDED_HOST = os.getenv("USE_X_FORWARDED_HOST") == "True"
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT") == "True"
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", True)
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", True)
 if USE_X_FORWARDED_HOST and SECURE_SSL_REDIRECT:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
