@@ -11,8 +11,11 @@ from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schem
 from jwt.algorithms import RSAAlgorithm
 from rest_framework import exceptions, response, views
 from social_core.backends.apple import AppleIdAuth
+from social_core.backends.github import GithubOAuth2
 from social_core.backends.google import GoogleOAuth2
 from social_core.backends.kakao import KakaoOAuth2
+from social_core.backends.naver import NaverOAuth2
+from social_django.utils import load_strategy
 
 from authentications.register import register_social_user, save_image_from_url
 from authentications.serializers import SocialLoginSerializer
@@ -38,7 +41,8 @@ class GoogleLoginView(views.APIView):
     def get(self, request, *args, **kwargs):
         serializer = SocialLoginSerializer(data=self.request.query_params)
         serializer.is_valid(raise_exception=True)
-        google_backend = GoogleOAuth2()
+        strategy = load_strategy(request)
+        google_backend = GoogleOAuth2(strategy=strategy)
         try:
             data = {
                 "code": serializer.validated_data.get("code"),
@@ -95,7 +99,8 @@ class KakaoLoginView(views.APIView):
         request_data = self.request.query_params
         serializer = SocialLoginSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
-        kakao_backend = KakaoOAuth2()
+        strategy = load_strategy(request)
+        kakao_backend = KakaoOAuth2(strategy=strategy)
         try:
             if request_data.get("type", "web") == "web":
                 data = {
@@ -123,6 +128,86 @@ class KakaoLoginView(views.APIView):
             name=user_data.get("kakao_account").get("profile").get("nickname"),
             provider="kakao",
             role="user",
+        )
+
+        return response.Response(extract_token(get_token(user)))
+
+
+"""
+Not tested
+"""
+
+
+class NaverLoginView(views.APIView):
+    permission_classes = ()
+    authentication_classes = ()
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "access_token",
+                type={"type": "string"},
+                style="form",
+                explode=False,
+                required=True,
+            )
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = SocialLoginSerializer(data=self.request.query_params)
+        serializer.is_valid(raise_exception=True)
+        strategy = load_strategy(request)
+        naver_backend = NaverOAuth2(strategy=strategy)
+        access_token = serializer.validated_data.get("access_token")
+
+        user_data = naver_backend.user_data(access_token)
+
+        user = register_social_user(
+            profile_image_url=user_data.get("profile_image"),
+            email=user_data.get("email"),
+            name=user_data.get("nickname"),
+            provider="naver",
+            role="student",
+        )
+
+        return response.Response(extract_token(get_token(user)))
+
+
+"""
+Not tested
+"""
+
+
+class GithubLoginView(views.APIView):
+    permission_classes = ()
+    authentication_classes = ()
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "access_token",
+                type={"type": "string"},
+                style="form",
+                explode=False,
+                required=True,
+            )
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        serializer = SocialLoginSerializer(data=self.request.query_params)
+        serializer.is_valid(raise_exception=True)
+        strategy = load_strategy(request)
+        github_backend = GithubOAuth2(strategy=strategy)
+        user_data = github_backend.user_data(
+            serializer.validated_data.get("access_token")
+        )
+        user = register_social_user(
+            profile_image_url=user_data.get("avatar_url"),
+            email=user_data.get("email"),
+            name=user_data.get("name")
+            or user_data.get("login"),  # GitHub might not provide name
+            provider="github",
+            role="student",
         )
 
         return response.Response(extract_token(get_token(user)))
