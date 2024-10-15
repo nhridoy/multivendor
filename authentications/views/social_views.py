@@ -30,7 +30,7 @@ class GoogleLoginView(views.APIView):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "code",
+                "access_token",
                 type={"type": "string"},
                 style="form",
                 explode=False,
@@ -43,23 +43,9 @@ class GoogleLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         google_backend = GoogleOAuth2(strategy=strategy)
-        try:
-            data = {
-                "code": serializer.validated_data.get("code"),
-                "client_id": settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
-                "client_secret": settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
-                "redirect_uri": request.build_absolute_uri("/api/auth/google/"),
-                "grant_type": "authorization_code",
-            }
-            resp = requests.post(settings.GOOGLE_TOKEN_URL, data=data)
-
-            print(resp.json())
-
-            user_data = google_backend.user_data(resp.json().get("access_token"))
-            print(user_data)
-
-        except requests.exceptions.HTTPError as e:
-            raise exceptions.AuthenticationFailed(detail=e) from e
+        user_data = google_backend.user_data(
+            serializer.validated_data.get("access_token")
+        )
 
         user = register_social_user(
             profile_image_url=user_data.get("picture"),
@@ -79,15 +65,7 @@ class KakaoLoginView(views.APIView):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "code",
-                type={"type": "string"},
-                style="form",
-                explode=False,
-                required=True,
-            ),
-            OpenApiParameter(
-                "type",
-                enum=["web", "ios", "android"],
+                "access_token",
                 type={"type": "string"},
                 style="form",
                 explode=False,
@@ -101,25 +79,9 @@ class KakaoLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         kakao_backend = KakaoOAuth2(strategy=strategy)
-        try:
-            if request_data.get("type", "web") == "web":
-                data = {
-                    "code": serializer.validated_data.get("code"),
-                    "client_id": settings.SOCIAL_AUTH_KAKAO_APP_KEY,
-                    "redirect_uri": request.build_absolute_uri("/api/auth/kakao/"),
-                    "grant_type": "authorization_code",
-                }
-                resp = requests.post(settings.KAKAO_TOKEN_URL, data=data)
-
-                user_data = kakao_backend.user_data(resp.json().get("access_token"))
-            else:
-                user_data = kakao_backend.user_data(
-                    serializer.validated_data.get("code")
-                )
-
-        except requests.exceptions.HTTPError as e:
-            raise exceptions.AuthenticationFailed(detail=e) from e
-
+        user_data = kakao_backend.user_data(
+            serializer.validated_data.get("access_token")
+        )
         user = register_social_user(
             profile_image_url=user_data.get("kakao_account")
             .get("profile")
@@ -131,11 +93,6 @@ class KakaoLoginView(views.APIView):
         )
 
         return response.Response(extract_token(get_token(user)))
-
-
-"""
-Not tested
-"""
 
 
 class NaverLoginView(views.APIView):
@@ -167,15 +124,10 @@ class NaverLoginView(views.APIView):
             email=user_data.get("email"),
             name=user_data.get("nickname"),
             provider="naver",
-            role="student",
+            role="user",
         )
 
         return response.Response(extract_token(get_token(user)))
-
-
-"""
-Not tested
-"""
 
 
 class GithubLoginView(views.APIView):
@@ -207,7 +159,7 @@ class GithubLoginView(views.APIView):
             name=user_data.get("name")
             or user_data.get("login"),  # GitHub might not provide name
             provider="github",
-            role="student",
+            role="user",
         )
 
         return response.Response(extract_token(get_token(user)))

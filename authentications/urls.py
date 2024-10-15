@@ -7,6 +7,7 @@ from authentications.views import (
     AppleLoginView,
     ChangePasswordView,
     GithubCallbackView,
+    GithubLoginView,
     GithubWebLoginView,
     GoogleCallbackView,
     GoogleLoginView,
@@ -18,6 +19,7 @@ from authentications.views import (
     LogoutView,
     MyTokenRefreshView,
     NaverCallbackView,
+    NaverLoginView,
     NaverWebLoginView,
     OTPCheckView,
     OTPLoginView,
@@ -78,9 +80,13 @@ profile_urls = [
     ),
 ]
 social_urls = [
+    # We are using these for now
     path("google/", GoogleLoginView.as_view()),
     path("kakao/", KakaoLoginView.as_view()),
+    path("naver/", NaverLoginView.as_view()),
+    path("github/", GithubLoginView.as_view()),
     path("apple/", AppleLoginView.as_view()),
+    # We are not using these for now
     path("kakao-auth/", KakaoWebLoginView.as_view(), name="kakao_login"),
     path("kakao-callback/", KakaoCallbackView.as_view(), name="kakao_callback"),
     path("naver-auth/", NaverWebLoginView.as_view(), name="naver_login"),
