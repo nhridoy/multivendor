@@ -25,9 +25,14 @@ if USE_S3:
 
     # static files settings
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"  # static files url
-    STATICFILES_STORAGE = "core.storages.s3.StaticFilesStorage"
-    # public media settings
-    DEFAULT_FILE_STORAGE = "core.storages.s3.PrivateMediaStorage"
+    STORAGES = {
+        "default": {
+            "BACKEND": "core.storages.s3.PrivateMediaStorage",  # For media files
+        },
+        "staticfiles": {
+            "BACKEND": "core.storages.s3.StaticFilesStorage",  # For static files
+        },
+    }
 
 else:
     STATIC_URL = "static/"
