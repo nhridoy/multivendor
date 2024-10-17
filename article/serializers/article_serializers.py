@@ -121,7 +121,7 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
             "category",
             "user",
             "title",
-            "THUMBNAIL",
+            "thumbnail",
             "short_content",
             "content",
             "total_like",
