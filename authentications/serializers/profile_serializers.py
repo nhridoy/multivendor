@@ -58,6 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
             "is_active",
             "is_staff",
+            "role",
         )
         read_only_fields = (
             "date_joined",
@@ -66,6 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "oauth_provider",
             "is_staff",
+            "role",
         )
 
     @transaction.atomic
