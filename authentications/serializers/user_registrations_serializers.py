@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils.translation import gettext as _
 from rest_framework import serializers, validators
 
-from authentications.models import ROLE, User, UserInformation
+from authentications.models import User, UserInformation
 from options.models import City, Country, Language, Province
 from options.serializers import (
     CitySerializer,
@@ -51,7 +51,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         required=True, write_only=True, source="user_information.full_name"
     )
     role = serializers.ChoiceField(
-        choices=ROLE,
+        choices=User.ROLE,
         required=True,
         write_only=True,
     )
@@ -110,7 +110,7 @@ class AdminUserSerializer(RegistrationSerializer):
     Admin User Registration Serializer
     """
 
-    role = serializers.ChoiceField(choices=ROLE, required=True)
+    role = serializers.ChoiceField(choices=User.ROLE, required=True)
     full_name = serializers.CharField(
         source="user_information.full_name",
         required=True,

@@ -14,24 +14,24 @@ from core.models import BaseModel, CompressedImageField
 from core.settings import PROJECT_NAME
 from utils.helper import content_file_path
 
-USER_OAUTH_PROVIDER = (
-    ("google", "Google"),
-    ("github", "Github"),
-    ("kakao", "Kakao"),
-    ("naver", "Naver"),
-    ("email", "Email"),
-)
-
-ROLE = (
-    ("user", "user"),
-    ("admin", "admin"),
-)
-
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User Model Class
     """
+
+    USER_OAUTH_PROVIDER = (
+        ("google", "Google"),
+        ("github", "Github"),
+        ("kakao", "Kakao"),
+        ("naver", "Naver"),
+        ("email", "Email"),
+    )
+
+    ROLE = (
+        ("user", "user"),
+        ("admin", "admin"),
+    )
 
     id = models.UUIDField(
         primary_key=True,
