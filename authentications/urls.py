@@ -67,6 +67,19 @@ otp_urls = [
     path("otp-check/", OTPCheckView.as_view(), name="otp-check"),
     path("otp/", OTPView.as_view(), name="otp"),
 ]
+profile_urls = [
+    path(
+        "profile/",
+        ProfileViewSet.as_view(
+            {
+                "get": "profile",
+                "put": "profile",
+                "patch": "profile",
+            }
+        ),
+        name="profile",
+    ),
+]
 
 social_urls = [
     # We are using these for now
@@ -88,6 +101,7 @@ social_urls = [
 urlpatterns = []
 urlpatterns += router.urls
 urlpatterns += login_urls
+urlpatterns += profile_urls
 urlpatterns += otp_urls
 urlpatterns += password_urls
 urlpatterns += social_urls
