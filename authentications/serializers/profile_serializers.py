@@ -16,21 +16,6 @@ from options.serializers import (
 from .helper_functions import update_related_instance
 
 
-class UserInformationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserInformation
-        fields = (
-            "full_name",
-            "gender",
-            "country",
-            "province",
-            "city",
-            "language",
-            "profile_picture",
-            "date_of_birth",
-        )
-
-
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="user_information.full_name")
     profile_picture = serializers.ImageField(source="user_information.profile_picture")

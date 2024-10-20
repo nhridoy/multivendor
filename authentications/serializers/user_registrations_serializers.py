@@ -10,7 +10,6 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers, validators
 
 from authentications.models import ROLE, User, UserInformation
-from authentications.serializers import UserInformationSerializer
 from options.models import City, Country, Language, Province
 from options.serializers import (
     CitySerializer,
@@ -20,6 +19,20 @@ from options.serializers import (
 )
 
 from .helper_functions import update_related_instance
+
+
+class UserInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserInformation
+        fields = (
+            "full_name",
+            "gender",
+            "province",
+            "city",
+            "address",
+            "profile_picture",
+            "date_of_birth",
+        )
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
