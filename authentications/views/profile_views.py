@@ -5,9 +5,11 @@ from authentications.models import User
 from authentications.serializers import PersonalProfileSerializer
 
 
-class ProfileViewSet(viewsets.GenericViewSet):
+class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = PersonalProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    http_method_names = ["get", "put", "patch"]
 
     def get_queryset(self):
         return User.objects.select_related(
@@ -17,14 +19,5 @@ class ProfileViewSet(viewsets.GenericViewSet):
             "user_information__city",
         )
 
-    @action(detail=False, methods=["get", "put", "patch"])
-    def profile(self, request):
-        user = self.get_queryset().get(id=request.user.id)
-        if request.method == "GET":
-            serializer = self.get_serializer(user)
-            return response.Response(serializer.data)
-        elif request.method in ["PUT", "PATCH"]:
-            serializer = self.get_serializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return response.Response(serializer.data)
+    def get_object(self):
+        return self.get_queryset().get(id=self.request.user.id)

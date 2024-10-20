@@ -20,7 +20,7 @@ from social_django.utils import load_strategy
 from authentications.register import register_social_user, save_image_from_url
 from authentications.serializers import SocialLoginSerializer
 
-from .common_functions import extract_token, get_token
+from .common_functions import direct_login, extract_token, get_token
 
 
 class GoogleLoginView(views.APIView):
@@ -43,19 +43,25 @@ class GoogleLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         google_backend = GoogleOAuth2(strategy=strategy)
-        user_data = google_backend.user_data(
-            serializer.validated_data.get("access_token")
-        )
 
-        user = register_social_user(
-            profile_image_url=user_data.get("picture"),
-            email=user_data.get("email"),
-            name=user_data.get("name"),
-            provider="google",
-            role="user",
-        )
+        try:
+            user_data = google_backend.user_data(
+                serializer.validated_data.get("access_token")
+            )
+            user = register_social_user(
+                profile_image_url=user_data.get("picture"),
+                email=user_data.get("email"),
+                name=user_data.get("name"),
+                provider="google",
+                role="user",
+            )
 
-        return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for request based login
+            return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for both cookie and request based login
+            # return direct_login(request, resp=response.Response(), user=user, token_data=extract_token(get_token(user)))
+        except requests.HTTPError as e:
+            raise exceptions.AuthenticationFailed
 
 
 class KakaoLoginView(views.APIView):
@@ -79,20 +85,31 @@ class KakaoLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         kakao_backend = KakaoOAuth2(strategy=strategy)
-        user_data = kakao_backend.user_data(
-            serializer.validated_data.get("access_token")
-        )
-        user = register_social_user(
-            profile_image_url=user_data.get("kakao_account")
-            .get("profile")
-            .get("profile_image_url"),
-            email=user_data.get("kakao_account").get("email"),
-            name=user_data.get("kakao_account").get("profile").get("nickname"),
-            provider="kakao",
-            role="user",
-        )
 
-        return response.Response(extract_token(get_token(user)))
+        try:
+            user_data = kakao_backend.user_data(
+                serializer.validated_data.get("access_token")
+            )
+            user = register_social_user(
+                profile_image_url=user_data.get("kakao_account")
+                .get("profile")
+                .get("profile_image_url"),
+                email=user_data.get("kakao_account").get("email"),
+                name=user_data.get("kakao_account").get("profile").get("nickname"),
+                provider="kakao",
+                role="user",
+            )
+            # FIXME: Use this line for request based login
+            # return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for both cookie and request based login
+            return direct_login(
+                request,
+                resp=response.Response(),
+                user=user,
+                token_data=extract_token(get_token(user)),
+            )
+        except requests.HTTPError as e:
+            raise exceptions.AuthenticationFailed
 
 
 class NaverLoginView(views.APIView):
@@ -115,19 +132,26 @@ class NaverLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         naver_backend = NaverOAuth2(strategy=strategy)
-        access_token = serializer.validated_data.get("access_token")
 
-        user_data = naver_backend.user_data(access_token)
+        try:
+            user_data = naver_backend.user_data(
+                serializer.validated_data.get("access_token")
+            )
 
-        user = register_social_user(
-            profile_image_url=user_data.get("profile_image"),
-            email=user_data.get("email"),
-            name=user_data.get("nickname"),
-            provider="naver",
-            role="user",
-        )
+            user = register_social_user(
+                profile_image_url=user_data.get("profile_image"),
+                email=user_data.get("email"),
+                name=user_data.get("nickname"),
+                provider="naver",
+                role="user",
+            )
 
-        return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for request based login
+            return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for both cookie and request based login
+            # return direct_login(request, resp=response.Response(), user=user, token_data=extract_token(get_token(user)))
+        except requests.HTTPError as e:
+            raise exceptions.AuthenticationFailed
 
 
 class GithubLoginView(views.APIView):
@@ -150,19 +174,26 @@ class GithubLoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         strategy = load_strategy(request)
         github_backend = GithubOAuth2(strategy=strategy)
-        user_data = github_backend.user_data(
-            serializer.validated_data.get("access_token")
-        )
-        user = register_social_user(
-            profile_image_url=user_data.get("avatar_url"),
-            email=user_data.get("email"),
-            name=user_data.get("name")
-            or user_data.get("login"),  # GitHub might not provide name
-            provider="github",
-            role="user",
-        )
 
-        return response.Response(extract_token(get_token(user)))
+        try:
+            user_data = github_backend.user_data(
+                serializer.validated_data.get("access_token")
+            )
+            user = register_social_user(
+                profile_image_url=user_data.get("avatar_url"),
+                email=user_data.get("email"),
+                name=user_data.get("name")
+                or user_data.get("login"),  # GitHub might not provide name
+                provider="github",
+                role="user",
+            )
+
+            # FIXME: Use this line for request based login
+            return response.Response(extract_token(get_token(user)))
+            # FIXME: Use this line for both cookie and request based login
+            # return direct_login(request, resp=response.Response(), user=user, token_data=extract_token(get_token(user)))
+        except requests.HTTPError as e:
+            raise exceptions.AuthenticationFailed
 
 
 class AppleLoginView(views.APIView):
@@ -241,7 +272,10 @@ class AppleLoginView(views.APIView):
                     provider="apple",
                     role="user",
                 )
+                # FIXME: Use this line for request based login
                 return response.Response(extract_token(get_token(user)))
+                # FIXME: Use this line for both cookie and request based login
+                # return direct_login(request, resp=response.Response(), user=user, token_data=extract_token(get_token(user)))
 
             else:
                 raise exceptions.AuthenticationFailed(detail=resp.json())

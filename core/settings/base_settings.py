@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "tinymce",
     "django_cleanup.apps.CleanupConfig",
     "storages",
+    # For testing ! TODO: Comment before shipping to production
+    "social_django",
     # created apps
     "authentications",
     "chat",
