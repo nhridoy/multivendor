@@ -1,12 +1,12 @@
 from rest_framework.routers import DefaultRouter
 
-from options.views import CityView, CountryView, LanguageView, ProvinceView
+from options.views import CityViewSet, CountryViewSet, LanguageViewSet, ProvinceViewSet
 
 router = DefaultRouter()
-router.register(r"admin/language", LanguageView, basename="admin/language")
-router.register(r"admin/province", ProvinceView, basename="admin/province")
-router.register(r"admin/city", CityView, basename="admin/city")
-router.register(r"admin/country", CountryView, basename="admin/country")
+router.register(r"languages", LanguageViewSet, basename="languages")
+router.register(r"provinces", ProvinceViewSet, basename="provinces")
+router.register(r"cities", CityViewSet, basename="cities")
+router.register(r"countries", CountryViewSet, basename="countries")
 
 urlpatterns = []
 urlpatterns += router.urls

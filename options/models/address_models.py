@@ -14,6 +14,9 @@ class Country(BaseModel):
 class Province(BaseModel):
     province_name = models.CharField(max_length=255, blank=True)
 
+    def __str__(self):
+        return self.province_name
+
 
 class City(BaseModel):
     province = models.ForeignKey(
@@ -23,6 +26,9 @@ class City(BaseModel):
 
     class Meta:
         verbose_name_plural = "Cities"
+
+    def __str__(self):
+        return f"{self.city_name}, {self.province.province_name}"
 
 
 class Language(BaseModel):
