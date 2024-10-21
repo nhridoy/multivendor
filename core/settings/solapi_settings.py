@@ -1,5 +1,0 @@
-from .base_settings import env
-
-SOLAPI_API_KEY = env("SOLAPI_API_KEY")
-SOLAPI_API_SECRET = env("SOLAPI_API_SECRET")
-SOLAPI_PHONE_NUMBER = env("SOLAPI_PHONE_NUMBER")

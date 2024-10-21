@@ -15,7 +15,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from authentications.models import User
 from utils.helper import encode_token, encrypt
 from utils.modules import EmailSender
-from utils.modules.solapi_sms import SolApiClient
+from utils.modules.sms_sender import BulkSMSBDNet, SolApiClient
 
 
 def get_origin(request):
@@ -192,10 +192,12 @@ def send_verification_email(user, link):
 
 
 def send_verification_sms(phone_number, code):
-    body = f"One time verification code is {code}"
+    body = _(f"One time verification code is {code}")
     solapi = SolApiClient()
     solapi.send_one(phone_number, body)
     # solapi.get_balance()
+    # bulk_sms_bd = BulkSMSBDNet()
+    # bulk_sms_bd.send_sms(phone_number, body)
     print(body)
 
 

@@ -9,7 +9,7 @@ from .fcm_django_settings import *
 from .language_settings import *
 from .payment_settings import *
 from .redis_settings import *
+from .sms_settings import *
 from .social_auth_settings import *
-from .solapi_settings import *
 from .storage_settings import *
 from .tinymce_settings import *
