@@ -3,7 +3,7 @@ from rest_framework import exceptions, generics, permissions, response, viewsets
 
 from support.models import Inquiry, InquiryAnswer
 from support.serializers import InquiryAnswerSerializer, InquirySerializer
-from utils.extensions.permissions import IsAdmin
+from utils.extensions.permissions import IsAdmin, IsAdminOrReadOnly
 
 
 class InquiryViewSet(viewsets.ModelViewSet):
@@ -11,31 +11,36 @@ class InquiryViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     lookup_field = "id"
     http_method_names = ["get", "post"]
+    queryset = (
+        Inquiry.objects.select_related("inquiry_answers", "user__user_information")
+        .all()
+        .order_by("-created_at")
+    )
 
     def get_queryset(self):
-        if self.request.user.is_superuser or self.request.user.is_staff:
-            return (
-                Inquiry.objects.all()
-                .select_related("answer", "user__user_information")
-                .order_by("-created_at")
-            )
-        return (
-            Inquiry.objects.filter(user=self.request.user)
-            .select_related("answer", "user__user_information")
-            .order_by("-created_at")
-        )
+        if self.request.user.role == "admin":
+            return self.queryset
+        return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)
 
 
-class InquiryAnswerView(generics.CreateAPIView):
+class InquiryAnswerView(generics.ListCreateAPIView):
     serializer_class = InquiryAnswerSerializer
-    permission_classes = (IsAdmin,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
     queryset = InquiryAnswer.objects.all()
 
+    def get_queryset(self):
+        inquiry_id = self.kwargs.get("id")
+        if self.request.user.role == "admin":
+            return self.queryset.filter(inquiry_id=inquiry_id)
+        return self.queryset.filter(
+            inquiry_id=inquiry_id, inquiry__user=self.request.user
+        )
+
     def perform_create(self, serializer):
-        try:
-            return serializer.save(inquiry_id=self.kwargs.get("id"))
-        except IntegrityError as e:
-            raise exceptions.PermissionDenied(detail="Already Answered") from e
+        return serializer.save(inquiry_id=self.kwargs.get("id"), user=self.request.user)

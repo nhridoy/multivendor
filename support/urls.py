@@ -15,9 +15,10 @@ router = DefaultRouter()
 router.register(r"devices", FCMDeviceAuthorizedViewSet, basename="fcm")
 router.register(r"inquiry", InquiryViewSet, basename="inquiry")
 router.register(r"notice", NoticeViewSet, basename="notice")
+
 urlpatterns = [
     path(
-        "inquiry/<uuid:id>/answer/",
+        "inquiry/<int:id>/answer/",
         InquiryAnswerView.as_view(),
         name="inquiry-details",
     ),

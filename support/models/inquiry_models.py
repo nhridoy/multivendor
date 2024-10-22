@@ -25,6 +25,6 @@ class InquiryAnswer(BaseModel):
         "authentications.User", on_delete=models.CASCADE, related_name="inquiry_answers"
     )
     inquiry = models.OneToOneField(
-        Inquiry, on_delete=models.CASCADE, related_name="answer"
+        Inquiry, on_delete=models.CASCADE, related_name="inquiry_answers"
     )
     answer = models.TextField()
