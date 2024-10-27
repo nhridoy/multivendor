@@ -1,6 +1,9 @@
 # Use an official Python runtime as a parent image
 FROM python:3.12-alpine
 
+#add gettext
+RUN apk add gettext
+
 LABEL org.opencontainers.image.source=https://github.com/potentialInc/enterMong-backend
 #EXPOSE 8000
 # Set environment variables for Python
