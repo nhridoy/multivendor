@@ -12,6 +12,9 @@ echo "Apply database migrations"
 #python manage.py makemigrations
 python manage.py migrate
 
+echo "Creating Translations"
+python manage.py compilemessages
+
 echo "Creating Superuser"
 python manage.py init
 
