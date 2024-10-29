@@ -8,10 +8,21 @@ from support.models import Inquiry, InquiryAnswer
 
 class InquirySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    answer_count = serializers.IntegerField(
+        source="inquiry_answers.count", read_only=True
+    )
 
     class Meta:
         model = Inquiry
-        fields = ("id", "user", "title", "body", "created_at", "is_answered")
+        fields = (
+            "id",
+            "user",
+            "title",
+            "body",
+            "created_at",
+            "is_answered",
+            "answer_count",
+        )
         read_only_fields = ("is_answered",)
 
 
