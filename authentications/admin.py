@@ -14,6 +14,7 @@ class AdminUser(UserAdmin):
         "is_superuser",
         "is_verified",
         "role",
+        "oauth_provider",
     )
     list_display = (
         "id",

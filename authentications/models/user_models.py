@@ -84,6 +84,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    class Meta:
+        ordering = ["-date_joined"]
+
 
 class UserInformation(BaseModel):
     GENDER = (("male", "male"), ("female", "female"), ("other", "other"))
