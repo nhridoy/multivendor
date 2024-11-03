@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from support.models import Page
+from site_settings.models import Page
 
 
 class PageSerializer(serializers.ModelSerializer):

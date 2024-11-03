@@ -7,7 +7,6 @@ from support.views import (
     InquiryViewSet,
     NoticeViewSet,
     NotificationView,
-    PageViewSet,
     TranslatorView,
 )
 
@@ -16,10 +15,10 @@ router = DefaultRouter()
 router.register(r"devices", FCMDeviceAuthorizedViewSet, basename="fcm")
 router.register(r"inquiry", InquiryViewSet, basename="inquiry")
 router.register(r"notice", NoticeViewSet, basename="notice")
-router.register("pages", PageViewSet, basename="pages")
+
 urlpatterns = [
     path(
-        "inquiry/<uuid:id>/answer/",
+        "inquiry/<int:id>/answer/",
         InquiryAnswerView.as_view(),
         name="inquiry-details",
     ),

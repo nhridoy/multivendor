@@ -1,7 +1,11 @@
 # Use an official Python runtime as a parent image
-FROM python:3.10-bullseye
+FROM python:3.12-alpine
 
-EXPOSE 8000
+#add gettext
+RUN apk add gettext
+
+LABEL org.opencontainers.image.source=https://github.com/potentialInc/enterMong-backend
+#EXPOSE 8000
 # Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -12,8 +16,13 @@ WORKDIR /app
 # Copy the current directory contents into the container at /code
 COPY . /app
 
+# Install uv
+RUN pip install uv
+
+RUN uv pip install twisted[tls,http2] --system
+
 # Install dependencies
-RUN pip install  -r requirements.txt # --no-cache-dir
+RUN uv pip install -r requirements.txt --system # --no-cache-dir
 
 
 

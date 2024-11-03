@@ -18,6 +18,7 @@ from authentications import serializers
 from authentications.models import User
 from authentications.views.common_functions import (
     direct_login,
+    extract_token,
     generate_link,
     get_origin,
     get_token,
@@ -35,23 +36,15 @@ class RegistrationView(viewsets.GenericViewSet):
     serializer_class = serializers.RegistrationSerializer
     queryset = User.objects.all()
     permission_classes = ()
+
     # authentication_classes = ()
 
     # http_method_names = ["post"]
 
     def _login(self, user, message: str):
-        token = get_token(user)
+        token = extract_token(get_token(user))
         resp = direct_login(
-            request=self.request,
-            user=user,
-            token_data={
-                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
-                    token
-                ),
-                settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
-                    token.access_token
-                ),
-            },
+            request=self.request, resp=response.Response(), user=user, token_data=token
         )
 
         resp.data["data"]["message"] = message
@@ -59,12 +52,12 @@ class RegistrationView(viewsets.GenericViewSet):
 
     def _verification_email(self, user):
         context = {
-            "url": generate_link(user, get_origin(self), "verify-email"),
+            "url": generate_link(user, get_origin(self.request), "verify-email"),
         }
 
         is_email_verification_required = settings.REQUIRED_EMAIL_VERIFICATION
 
-        if not is_email_verification_required:
+        if is_email_verification_required:
             send_verification_email(user, context)
         if self.action == "create":
             resp = self._login(
@@ -139,3 +132,24 @@ class RegistrationView(viewsets.GenericViewSet):
         ) as e:
             raise exceptions.ValidationError(detail={"detail": e}) from e
         return response.Response({"data": _("Email Verification Successful")})
+
+
+class AdminUserViewSet(viewsets.ModelViewSet):
+    permission_classes = (permissions.IsAdminUser,)
+    queryset = User.objects.all().select_related(
+        "user_information",
+        "user_information__country",
+        "user_information__province",
+        "user_information__city",
+    )
+    serializer_class = serializers.AdminUserSerializer
+    filterset_fields = ["role"]
+    http_method_names = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "head",
+        "options",
+        "trace",
+    ]

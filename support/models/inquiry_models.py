@@ -18,13 +18,14 @@ class Inquiry(BaseModel):
 
     class Meta:
         verbose_name_plural = "Inquiries"
+        ordering = ["-created_at"]
 
 
 class InquiryAnswer(BaseModel):
     user = models.ForeignKey(
         "authentications.User", on_delete=models.CASCADE, related_name="inquiry_answers"
     )
-    inquiry = models.OneToOneField(
-        Inquiry, on_delete=models.CASCADE, related_name="answer"
+    inquiry = models.ForeignKey(
+        Inquiry, on_delete=models.CASCADE, related_name="inquiry_answers"
     )
     answer = models.TextField()

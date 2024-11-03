@@ -1,3 +1,7 @@
+import os
+
+from .base_settings import BASE_DIR
+
 gettext = lambda s: s
 LANGUAGES = (
     ("en", gettext("English")),
@@ -9,8 +13,12 @@ USE_L10N = True
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
 USE_TZ = True
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, "locale"),
+]

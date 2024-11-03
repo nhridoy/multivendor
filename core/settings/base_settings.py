@@ -1,5 +1,9 @@
-import os
 from pathlib import Path
+
+from environs import Env
+
+env = Env()
+env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -11,19 +15,19 @@ APP_MEDIA_ROOT = BASE_DIR.joinpath("media")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
-PROJECT_NAME = os.getenv("PROJECT_NAME")
+PROJECT_NAME = env("PROJECT_NAME")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY")
 
-FERNET_SECRET_KEY = os.getenv(
-    "FERNET_SECRET_KEY", default="bhcTDnLm8eii39PHQ0g34uyDfxiSBIq__YQtPmufkFg="
+FERNET_SECRET_KEY = env(
+    "FERNET_SECRET_KEY", "bhcTDnLm8eii39PHQ0g34uyDfxiSBIq__YQtPmufkFg="
 )  # Encryption Secret Key
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "True"
+DEBUG = env.bool("DEBUG", False)
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
 
@@ -47,6 +51,10 @@ INSTALLED_APPS = [
     "debug_toolbar",  # django debug toolbar
     "dj_rest_auth",
     "tinymce",
+    "django_cleanup.apps.CleanupConfig",
+    "storages",
+    # For testing ! TODO: Comment before shipping to production
+    "social_django",
     # created apps
     "authentications",
     "chat",
@@ -54,6 +62,8 @@ INSTALLED_APPS = [
     "forum",
     "support",
     "options",
+    "site_settings",
+    "payment",
 ]
 
 MIDDLEWARE = [
@@ -116,7 +126,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ["authentications.auth_backend.EmailAuthenticationBackend"]
+AUTHENTICATION_BACKENDS = [
+    # "authentications.auth_backend.EmailAuthenticationBackend",
+    "social_core.backends.kakao.KakaoOAuth2",
+    "social_core.backends.naver.NaverOAuth2",
+    "social_core.backends.google.GoogleOAuth2",
+    "social_core.backends.github.GithubOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -129,3 +146,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+USE_X_FORWARDED_HOST = env.bool("USE_X_FORWARDED_HOST", True)
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", True)
+if USE_X_FORWARDED_HOST and SECURE_SSL_REDIRECT:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

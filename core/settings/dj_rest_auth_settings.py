@@ -1,18 +1,17 @@
-import os
 from datetime import timedelta
 
-from .base_settings import DEBUG, SECRET_KEY
+from .base_settings import DEBUG, SECRET_KEY, env
 
 # -------------------------------------
 # SYSTEM: configurations
 # -------------------------------------
-DEFAULT_OTP_SECRET = os.getenv(
+DEFAULT_OTP_SECRET = env(
     "DEFAULT_OTP_SECRET", default="1234567890"
 )  # default OTP Secret Key
 # OTP Verification True will send otp code to user while registration
-REQUIRED_EMAIL_VERIFICATION = os.getenv("REQUIRED_EMAIL_VERIFICATION") == "True"
-OTP_EXPIRY = os.getenv("OTP_EXPIRY", default="30")  # OTP Expiry Time
-TOKEN_TIMEOUT_SECONDS = int(os.getenv("TOKEN_TIMEOUT_SECONDS", "300"))
+REQUIRED_EMAIL_VERIFICATION = env.bool("REQUIRED_EMAIL_VERIFICATION")
+OTP_EXPIRY = env("OTP_EXPIRY", default="30")  # OTP Expiry Time
+TOKEN_TIMEOUT_SECONDS = env.int("TOKEN_TIMEOUT_SECONDS", 300)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
@@ -50,12 +49,13 @@ SIMPLE_JWT = {
 ACCOUNT_LOGOUT_ON_GET = True
 REST_AUTH = {
     "OLD_PASSWORD_FIELD_ENABLED": True,
-    "LOGOUT_ON_PASSWORD_CHANGE": os.getenv("LOGOUT_ON_PASSWORD_CHANGE") == "True",
-    "SESSION_LOGIN": os.getenv("REST_SESSION_LOGIN") == "True",
+    "LOGOUT_ON_PASSWORD_CHANGE": env.bool("LOGOUT_ON_PASSWORD_CHANGE", False),
+    "SESSION_LOGIN": env.bool("REST_SESSION_LOGIN", False),
     "USE_JWT": True,
     "JWT_AUTH_COOKIE": "access",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
     "JWT_AUTH_REFRESH_COOKIE_PATH": "/",
+    # "JWT_AUTH_COOKIE_DOMAIN": ".potentialai.com",
     "JWT_AUTH_SECURE": not DEBUG,  # <-- If set to True, the cookie will only be sent through https scheme.
     "JWT_AUTH_HTTPONLY": True,  # <-- If set to True, the client-side JavaScript will not be able to access the cookie.
     "JWT_AUTH_SAMESITE": "Lax",

@@ -6,15 +6,26 @@ from authentications.views import (
     AdminUserViewSet,
     AppleLoginView,
     ChangePasswordView,
+    GithubCallbackView,
+    GithubLoginView,
+    GithubWebLoginView,
+    GoogleCallbackView,
     GoogleLoginView,
+    GoogleWebLoginView,
+    KakaoCallbackView,
     KakaoLoginView,
+    KakaoWebLoginView,
     LoginView,
     LogoutView,
     MyTokenRefreshView,
+    NaverCallbackView,
+    NaverLoginView,
+    NaverWebLoginView,
     OTPCheckView,
     OTPLoginView,
     OTPView,
     PasswordValidateView,
+    ProfileViewSet,
     RegistrationView,
 )
 from authentications.views.reset_password_views import (
@@ -26,6 +37,7 @@ from authentications.views.reset_password_views import (
 router = DefaultRouter()
 router.register(r"register", RegistrationView, basename="register")
 router.register(r"admin/user", AdminUserViewSet, basename="admin-user")
+router.register(r"profile", ProfileViewSet, basename="profile")
 
 password_urls = [
     path("password-validate/", PasswordValidateView.as_view()),
@@ -55,16 +67,41 @@ otp_urls = [
     path("otp-check/", OTPCheckView.as_view(), name="otp-check"),
     path("otp/", OTPView.as_view(), name="otp"),
 ]
-signup_urls = []
+profile_urls = [
+    path(
+        "profile/",
+        ProfileViewSet.as_view(
+            {
+                "get": "profile",
+                "put": "profile",
+                "patch": "profile",
+            }
+        ),
+        name="profile",
+    ),
+]
+
 social_urls = [
+    # We are using these for now
     path("google/", GoogleLoginView.as_view()),
     path("kakao/", KakaoLoginView.as_view()),
+    path("naver/", NaverLoginView.as_view()),
+    path("github/", GithubLoginView.as_view()),
     path("apple/", AppleLoginView.as_view()),
+    # We are not using these for now
+    path("kakao-auth/", KakaoWebLoginView.as_view(), name="kakao_login"),
+    path("kakao-callback/", KakaoCallbackView.as_view(), name="kakao_callback"),
+    path("naver-auth/", NaverWebLoginView.as_view(), name="naver_login"),
+    path("naver-callback/", NaverCallbackView.as_view(), name="naver_callback"),
+    path("google-auth/", GoogleWebLoginView.as_view(), name="google_login"),
+    path("google-callback/", GoogleCallbackView.as_view(), name="google_callback"),
+    path("github-auth/", GithubWebLoginView.as_view(), name="github_login"),
+    path("github-callback/", GithubCallbackView.as_view(), name="github_callback"),
 ]
 urlpatterns = []
 urlpatterns += router.urls
 urlpatterns += login_urls
+urlpatterns += profile_urls
 urlpatterns += otp_urls
-urlpatterns += signup_urls
 urlpatterns += password_urls
 urlpatterns += social_urls

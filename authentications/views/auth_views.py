@@ -1,14 +1,10 @@
 import contextlib
 from typing import Any
 
-from dj_rest_auth.jwt_auth import (
-    set_jwt_access_cookie,
-    set_jwt_refresh_cookie,
-    unset_jwt_cookies,
-)
 from django.conf import settings
 from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from pyotp import TOTP
 from rest_framework import exceptions, generics, permissions, status, views
@@ -30,9 +26,14 @@ from utils.extensions.permissions import IsAuthenticatedAndEmailVerified
 
 from .common_functions import (
     direct_login,
+    extract_token,
     generate_and_send_otp,
     generate_token,
+    get_origin,
     get_token,
+    set_jwt_access_cookie,
+    set_jwt_refresh_cookie,
+    unset_jwt_cookies,
 )
 
 
@@ -62,7 +63,7 @@ class LoginView(TokenObtainPairView):
             else:
                 return generate_and_send_otp(user, otp_method, True)
         else:
-            return direct_login(request, user, serializer.validated_data[0])
+            return direct_login(request, Response(), user, serializer.validated_data[0])
 
 
 class MyTokenRefreshView(generics.GenericAPIView):
@@ -75,19 +76,21 @@ class MyTokenRefreshView(generics.GenericAPIView):
     authentication_classes = ()
 
     @staticmethod
-    def _set_cookie(resp, serializer):
+    def _set_cookie(resp, serializer, domain):
         if refresh := serializer.validated_data.get(
             settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE")
         ):  # noqa
             set_jwt_refresh_cookie(
-                response=resp,
+                resp=resp,
                 refresh_token=refresh,
+                domain=domain,
             )
         set_jwt_access_cookie(
-            response=resp,
+            resp=resp,
             access_token=serializer.validated_data.get(
                 settings.REST_AUTH.get("JWT_AUTH_COOKIE")
             ),  # noqa
+            domain=domain,
         )
 
     def post(self, request, *args, **kwargs):
@@ -100,7 +103,12 @@ class MyTokenRefreshView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         resp = Response()
-        self._set_cookie(resp=resp, serializer=serializer)
+
+        # try:
+        #     domain = get_origin(self.request).split("//")[1].split(":")[0]
+        # except Exception as e:
+        #     domain = None
+        self._set_cookie(resp=resp, serializer=serializer, domain=None)
         resp.data = serializer.validated_data
         resp.status_code = status.HTTP_200_OK
         return resp
@@ -137,14 +145,19 @@ class LogoutView(views.APIView):
             logout(request)
 
         resp = Response(
-            {"detail": "Successfully logged out."},
+            {"detail": _("Successfully logged out.")},
             status=status.HTTP_200_OK,
         )
 
         if settings.REST_AUTH.get("USE_JWT", True):
             cookie_name = settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access")
 
-            unset_jwt_cookies(resp)
+            # try:
+            #     domain = get_origin(request).split("//")[1].split(":")[0]
+            # except Exception as e:
+            #     domain = None
+
+            unset_jwt_cookies(resp, None)
 
             if "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
@@ -160,7 +173,7 @@ class LogoutView(views.APIView):
                     token.blacklist()
                 except KeyError:
                     resp.data = {
-                        "detail": "Refresh token was not included in request data."
+                        "detail": _("Refresh token was not included in request data.")
                     }
                     resp.status_code = status.HTTP_401_UNAUTHORIZED
                 except (TokenError, AttributeError, TypeError) as error:
@@ -172,15 +185,15 @@ class LogoutView(views.APIView):
                             resp.data = {"detail": error.args[0]}
                             resp.status_code = status.HTTP_401_UNAUTHORIZED
                         else:
-                            resp.data = {"detail": "An error has occurred."}
+                            resp.data = {"detail": _("An error has occurred.")}
                             resp.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
                     else:
-                        resp.data = {"detail": "An error has occurred."}
+                        resp.data = {"detail": _("An error has occurred.")}
                         resp.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             elif not cookie_name:
-                message = (
+                message = _(
                     "Neither cookies or blacklist are enabled, so the token "
                     "has not been deleted server side. "
                     "Please make sure the token is deleted client side.",
@@ -200,19 +213,8 @@ class OTPLoginView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.user
 
-        token = get_token(user)
-        return direct_login(
-            request,
-            user,
-            {
-                settings.REST_AUTH.get("JWT_AUTH_REFRESH_COOKIE", "refresh"): str(
-                    token
-                ),
-                settings.REST_AUTH.get("JWT_AUTH_COOKIE", "access"): str(
-                    token.access_token
-                ),
-            },
-        )
+        token = extract_token(get_token(user))
+        return direct_login(request, Response(), user, token)
 
 
 class OTPCheckView(views.APIView):
@@ -282,7 +284,7 @@ class OTPView(generics.GenericAPIView):
                         ),
                         "otp_method": otp_method,
                     },
-                    "message": "QR Code is generated",
+                    "message": _("QR Code is generated"),
                 }
             )
         else:
@@ -301,8 +303,8 @@ class OTPView(generics.GenericAPIView):
         user_otp.save(update_fields=["is_active", "otp_method"])
         return Response(
             {
-                "data": {"detail": "OTP is activated"},
-                "message": "OTP is activated",
+                "data": {"detail": _("OTP is activated")},
+                "message": _("OTP is activated"),
             },
             status=status.HTTP_200_OK,
         )
@@ -310,4 +312,6 @@ class OTPView(generics.GenericAPIView):
     def delete(self, request, *args, **kwargs):
         user_otp = self.request.user.user_two_step_verification
         self._clear_user_otp(user_otp)
-        return Response({"data": {"detail": "OTP Removed"}, "message": "OTP Removed"})
+        return Response(
+            {"data": {"detail": _("OTP Removed")}, "message": _("OTP Removed")}
+        )

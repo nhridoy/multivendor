@@ -1,7 +1,7 @@
 from rest_framework import response, viewsets
 
-from support.models import Page
-from support.serializers import PageSerializer
+from site_settings.models import Page
+from site_settings.serializers import PageSerializer
 from utils.extensions.permissions import IsAdminOrReadOnly
 
 

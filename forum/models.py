@@ -2,7 +2,7 @@ from autoslug import AutoSlugField
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
 from utils.helper import content_file_path
 
 
@@ -32,13 +32,13 @@ class Forum(BaseModel):
 
 
 class ForumImage(BaseModel):
-    image = models.ImageField(upload_to=content_file_path)
+    image = CompressedImageField(quality=75, width=1920)
     forum = models.ForeignKey(Forum, on_delete=models.CASCADE, related_name="images")
 
 
 class ForumComment(BaseModel):
     content = models.TextField()
-    image = models.ImageField(upload_to=content_file_path, blank=True, null=True)
+    image = CompressedImageField(quality=75, width=1920, blank=True, null=True)
     forum = models.ForeignKey(
         Forum, on_delete=models.CASCADE, related_name="forum_comments"
     )

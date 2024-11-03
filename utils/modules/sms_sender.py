@@ -90,3 +90,24 @@ class SolApiClient:
         }
         response = requests.post(url, headers=headers, json=data)
         return self._handle_response(response)
+
+
+class BulkSMSBDNet:
+    def __init__(
+        self,
+        api_key=settings.BULKSMS_BD_NET_API_KEY,
+        sender_id=settings.BULKSMS_BD_NET_SENDER_ID,
+    ):
+        self.api_key = api_key
+        self.sender_id = sender_id
+        self.url = settings.BULKSMS_BD_NET_API_URL
+
+    def send_sms(self, phone, message):
+        data = {
+            "api_key": self.api_key,
+            "senderid": self.sender_id,
+            "number": phone,
+            "message": message,
+        }
+        response = requests.post(self.url, json=data)
+        return response.json()

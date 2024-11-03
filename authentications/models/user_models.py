@@ -1,5 +1,6 @@
 import uuid
 
+import pyotp
 from django.contrib.auth.models import AbstractBaseUser, Permission, PermissionsMixin
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -9,26 +10,28 @@ from authentications.user_manager import UserManager
 # ========****************========
 # Custom authentications user model
 # ========****************========
-from core.models import BaseModel
+from core.models import BaseModel, CompressedImageField
+from core.settings import PROJECT_NAME
 from utils.helper import content_file_path
-
-USER_OAUTH_PROVIDER = (
-    ("google", "google"),
-    ("apple", "apple"),
-    ("kakao", "kakao"),
-    ("email", "email"),
-)
-
-ROLE = (
-    ("user", "user"),
-    ("admin", "admin"),
-)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User Model Class
     """
+
+    USER_OAUTH_PROVIDER = (
+        ("google", "Google"),
+        ("github", "Github"),
+        ("kakao", "Kakao"),
+        ("naver", "Naver"),
+        ("email", "Email"),
+    )
+
+    ROLE = (
+        ("user", "user"),
+        ("admin", "admin"),
+    )
 
     id = models.UUIDField(
         primary_key=True,
@@ -81,6 +84,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    class Meta:
+        ordering = ["-date_joined"]
+
 
 class UserInformation(BaseModel):
     GENDER = (("male", "male"), ("female", "female"), ("other", "other"))
@@ -90,8 +96,9 @@ class UserInformation(BaseModel):
     full_name = models.CharField(
         max_length=100, verbose_name="Full Name", blank=True, null=True
     )
-    profile_picture = models.ImageField(
-        upload_to=content_file_path,
+    profile_picture = CompressedImageField(
+        quality=75,
+        width=1920,
         blank=True,
         null=True,
     )
@@ -101,6 +108,14 @@ class UserInformation(BaseModel):
         blank=True,
         null=True,
     )
+
+    language = models.ForeignKey(
+        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    date_of_birth = models.DateField(
+        verbose_name="Date of Birth", blank=True, null=True
+    )
+
     country = models.ForeignKey(
         "options.Country", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -112,12 +127,6 @@ class UserInformation(BaseModel):
         "options.City", on_delete=models.SET_NULL, null=True, blank=True
     )
 
-    language = models.ForeignKey(
-        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    date_of_birth = models.DateField(
-        verbose_name="Date of Birth", blank=True, null=True
-    )
     address = models.TextField(
         verbose_name="Address",
         blank=True,
@@ -155,3 +164,11 @@ class UserTwoStepVerification(BaseModel):
 
     def __str__(self):
         return self.user.email
+
+    def get_totp(self, interval=30):
+        return pyotp.TOTP(self.secret_key, interval=interval)
+
+    def get_otpauth_url(self):
+        return self.get_totp().provisioning_uri(
+            name=self.user.email, issuer_name=PROJECT_NAME
+        )

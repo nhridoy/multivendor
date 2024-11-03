@@ -1,14 +1,9 @@
-import os
-import random
 from uuid import uuid4
 
 import requests
-from django.contrib.auth import authenticate
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
-from django.db.models import Q
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentications.models import User
 
@@ -22,25 +17,13 @@ def save_image_from_url(image_url):
         return img_temp
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
-
-
-def register_social_user(profile_image_url, provider, email, name):
+def register_social_user(profile_image_url, provider, email, name, role) -> User:
     filtered_user = User.objects.filter(email=email)
 
     if len(filtered_user):
 
         if provider == filtered_user[0].oauth_provider:
-
-            tokens = get_tokens_for_user(user=filtered_user[0])
-
-            return tokens
+            return filtered_user[0]
 
         else:
             raise AuthenticationFailed(
@@ -52,6 +35,8 @@ def register_social_user(profile_image_url, provider, email, name):
         user = {
             "email": email,
             "oauth_provider": provider,
+            "role": role,
+            "is_verified": True,
         }
         user = User.objects.create_user(**user)
         user.user_information.full_name = name
@@ -61,5 +46,4 @@ def register_social_user(profile_image_url, provider, email, name):
             user.user_information.profile_picture.save(str(uuid4()), File(image_temp))
         user.user_information.save(update_fields=["full_name", "profile_picture"])
 
-        tokens = get_tokens_for_user(user=user)
-        return tokens
+        return user
