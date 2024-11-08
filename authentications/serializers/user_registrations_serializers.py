@@ -15,7 +15,7 @@ from options.serializers import (
     CitySerializer,
     CountrySerializer,
     LanguageSerializer,
-    ProvinceSerializer,
+    OnlyProvinceSerializer,
 )
 
 from .helper_functions import update_related_instance
@@ -234,12 +234,10 @@ class AdminUserSerializer(RegistrationSerializer):
             else None
         )
         data["user_information"]["province"] = (
-            ProvinceSerializer(instance.user_information.province).data
+            OnlyProvinceSerializer(instance.user_information.province).data
             if instance.user_information.province
             else None
         )
-        with contextlib.suppress(AttributeError, KeyError):
-            data["user_information"]["province"].pop("cities")
         data["user_information"]["city"] = (
             CitySerializer(instance.user_information.city).data
             if instance.user_information.city

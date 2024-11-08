@@ -10,7 +10,7 @@ from options.serializers import (
     CitySerializer,
     CountrySerializer,
     LanguageSerializer,
-    ProvinceSerializer,
+    OnlyProvinceSerializer,
 )
 
 from .helper_functions import update_related_instance
@@ -99,9 +99,9 @@ class PersonalProfileSerializer(UserSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["country"] = CountrySerializer(instance.user_information.country).data
-        data["province"] = ProvinceSerializer(instance.user_information.province).data
-        with contextlib.suppress(AttributeError, KeyError):
-            data["province"].pop("cities")
+        data["province"] = OnlyProvinceSerializer(
+            instance.user_information.province
+        ).data
         data["city"] = CitySerializer(instance.user_information.city).data
         data["language"] = LanguageSerializer(instance.user_information.language).data
         return data
