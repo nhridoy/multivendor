@@ -109,11 +109,12 @@ class UserInformation(BaseModel):
         null=True,
     )
 
-    language = models.ForeignKey(
-        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
-    )
     date_of_birth = models.DateField(
         verbose_name="Date of Birth", blank=True, null=True
+    )
+
+    language = models.ForeignKey(
+        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
     )
 
     country = models.ForeignKey(

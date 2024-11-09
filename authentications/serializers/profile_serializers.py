@@ -16,29 +16,57 @@ from options.serializers import (
 from .helper_functions import update_related_instance
 
 
-class UserSerializer(serializers.ModelSerializer):
+class BasicUserInformationSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="user_information.full_name")
     profile_picture = serializers.ImageField(source="user_information.profile_picture")
-    date_of_birth = serializers.DateField(source="user_information.date_of_birth")
-    gender = serializers.ChoiceField(
-        source="user_information.gender", choices=UserInformation.GENDER
-    )
-    address = serializers.CharField(source="user_information.address")
-    phone_number = serializers.CharField(
-        source="user_information.phone_number", read_only=True
-    )
+
+    class Meta:
+        model = User
+        fields = (
+            "full_name",
+            "profile_picture",
+        )
+
+
+class UserInformationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserInformation
+        fields = (
+            "full_name",
+            "profile_picture",
+            "gender",
+            "date_of_birth",
+            "language",
+            "country",
+            "province",
+            "city",
+            "address",
+            "phone_number",
+            "is_phone_verified",
+        )
+        read_only_fields = (
+            # 'phone_number',
+            "is_phone_verified",
+        )
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response["language"] = LanguageSerializer(instance.language).data
+        response["country"] = CountrySerializer(instance.country).data
+        response["province"] = OnlyProvinceSerializer(instance.province).data
+        response["city"] = CitySerializer(instance.city).data
+        return response
+
+
+class BaseUserSerializer(serializers.ModelSerializer):
+    user_information = UserInformationSerializer()
 
     class Meta:
         model = User
         fields = (
             "id",
             "email",
-            "phone_number",
-            "full_name",
-            "profile_picture",
-            "date_of_birth",
-            "gender",
-            "address",
+            "user_information",
             "oauth_provider",
             "date_joined",
             "is_active",
@@ -46,65 +74,53 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
         )
         read_only_fields = (
-            "date_joined",
-            "is_active",
             "id",
             "email",
             "oauth_provider",
+            "date_joined",
+            "is_active",
             "is_staff",
             "role",
         )
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        if information_user := validated_data.pop("user_information", None):
+        if user_information := validated_data.pop("user_information", None):
             # Update the UserInformation fields or related object
-            update_related_instance(instance, information_user, "user_information")
+            update_related_instance(instance, user_information, "user_information")
 
         return instance
 
 
-class PersonalProfileSerializer(UserSerializer):
-    country = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(),
-        source="user_information.country",
-        required=False,
-    )
-    province = serializers.PrimaryKeyRelatedField(
-        queryset=Province.objects.all(),
-        source="user_information.province",
-        required=False,
-    )
-    city = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.all(),
-        source="user_information.city",
-        required=False,
-    )
-    language = serializers.PrimaryKeyRelatedField(
-        queryset=Language.objects.all(),
-        source="user_information.language",
-        required=False,
-    )
-    phone_number = serializers.CharField(source="user_information.phone_number")
+class PersonalProfileSerializer(BaseUserSerializer):
+    user_information = UserInformationSerializer()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields + (
-            "country",
-            "province",
-            "city",
-            "language",
-            "phone_number",
+    # nanny_information = NannyInformationSerializer(required=False)
+
+    class Meta(BaseUserSerializer.Meta):
+        fields = (
+            BaseUserSerializer.Meta.fields
+            # + ('nanny_information',)
         )
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["country"] = CountrySerializer(instance.user_information.country).data
-        data["province"] = OnlyProvinceSerializer(
-            instance.user_information.province
-        ).data
-        data["city"] = CitySerializer(instance.user_information.city).data
-        data["language"] = LanguageSerializer(instance.user_information.language).data
-        return data
+    def get_fields(self):
+        """
+        Conditionally include nanny information based on user role
+        """
+        fields = super().get_fields()
+        # request = self.context.get('request')
+        #
+        # # if not (request and request.user.is_authenticated and request.user.role == 'nanny'):
+        # #     fields.pop('nanny_information', None)
+
+        return fields
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        # if nanny_information := validated_data.pop("nanny_information", None):
+        #     update_related_instance(instance, nanny_information, "nanny_information")
+
+        return super().update(instance, validated_data)
 
 
 class SendInvitationSerializer(serializers.Serializer):

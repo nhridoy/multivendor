@@ -8,13 +8,13 @@ from django.utils.translation import gettext as _
 from product.models import Product
 from rest_framework import generics, serializers
 
-from authentications.serializers import UserSerializer
+from authentications.serializers import BasicUserInformationSerializer
 from payment.models import Order
 from utils.modules.payment import TossPayments
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
     # Relationship with item. It can be a course, product, or any other item
     product = serializers.SlugRelatedField(
         queryset=Product.objects.filter(
