@@ -5,7 +5,7 @@ from authentications.models import User
 from authentications.serializers import PersonalProfileSerializer
 
 
-class ProfileViewSet(viewsets.GenericViewSet):
+class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = PersonalProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = User.objects.select_related(
@@ -15,6 +15,7 @@ class ProfileViewSet(viewsets.GenericViewSet):
         "user_information__province",
         "user_information__city",
     )
+    http_method_names = ["get", "patch"]
 
     def get_queryset(self):
         # if self.request.user.role == "nanny":
@@ -29,14 +30,17 @@ class ProfileViewSet(viewsets.GenericViewSet):
         #     )
         return self.queryset
 
-    @action(detail=False, methods=["get", "put", "patch"])
-    def profile(self, request):
-        user = self.get_queryset().get(id=request.user.id)
-        if request.method == "GET":
-            serializer = self.get_serializer(user)
-            return response.Response(serializer.data)
-        elif request.method in ["PUT", "PATCH"]:
-            serializer = self.get_serializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return response.Response(serializer.data)
+    def get_object(self):
+        return self.get_queryset().get(id=self.request.user.id)
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return response.Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            self.get_object(), data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(serializer.data)
