@@ -6,6 +6,7 @@ from authentications.views import (
     AdminUserViewSet,
     AppleLoginView,
     ChangePasswordView,
+    FCMDeleteView,
     GithubCallbackView,
     GithubLoginView,
     GithubWebLoginView,
@@ -62,6 +63,7 @@ login_urls = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("token/refresh/", MyTokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("fcm-delete/", FCMDeleteView.as_view(), name="fcm-delete"),
 ]
 otp_urls = [
     path("otp-check/", OTPCheckView.as_view(), name="otp-check"),

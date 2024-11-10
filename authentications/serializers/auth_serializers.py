@@ -106,5 +106,5 @@ class OTPSerializer(serializers.Serializer):
         return value
 
 
-class LogoutSerializer(serializers.Serializer):
+class FCMDeleteSerializer(serializers.Serializer):
     device_id = serializers.CharField(write_only=True)
