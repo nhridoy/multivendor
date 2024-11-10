@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from article.models import Article, ArticleCategory, ArticleComment
-from authentications.serializers import UserSerializer
+from authentications.serializers import BasicUserInformationSerializer
 
 
 class ArticleCategorySerializer(serializers.ModelSerializer):
@@ -110,7 +110,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
     article_comments = ArticleCommentsSerializer(many=True, read_only=True)
 
     class Meta:

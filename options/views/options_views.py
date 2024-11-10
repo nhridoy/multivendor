@@ -38,7 +38,10 @@ class OptionsListView(views.APIView):
 
 
 class LanguageViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
     queryset = Language.objects.all()
     serializer_class = LanguageCreateSerializer
 
@@ -46,16 +49,25 @@ class LanguageViewSet(viewsets.ModelViewSet):
 class CountryViewSet(viewsets.ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
 
 
 class ProvinceViewSet(viewsets.ModelViewSet):
     queryset = Province.objects.prefetch_related("cities").all()
     serializer_class = ProvinceSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
 
 
 class CityViewSet(viewsets.ModelViewSet):
     queryset = City.objects.select_related("province").all()
     serializer_class = CityCreateSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )

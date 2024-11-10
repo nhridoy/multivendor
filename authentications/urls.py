@@ -72,9 +72,8 @@ profile_urls = [
         "profile/",
         ProfileViewSet.as_view(
             {
-                "get": "profile",
-                "put": "profile",
-                "patch": "profile",
+                "get": "retrieve",
+                "patch": "update",
             }
         ),
         name="profile",

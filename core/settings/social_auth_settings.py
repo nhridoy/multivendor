@@ -24,7 +24,7 @@ KAKAO_TOKEN_URL = env.url(
 )
 SOCIAL_AUTH_KAKAO_KEY = env("SOCIAL_AUTH_KAKAO_KEY")
 SOCIAL_AUTH_KAKAO_SECRET = env("SOCIAL_AUTH_KAKAO_SECRET")
-SOCIAL_AUTH_KAKAO_SCOPE = ["account_email"]
+SOCIAL_AUTH_KAKAO_SCOPE = ["account_email", "profile_image", "profile_nickname"]
 
 NAVER_TOKEN_URL = env.url(
     "NAVER_TOKEN_URL", default="https://nid.naver.com/oauth2.0/token"

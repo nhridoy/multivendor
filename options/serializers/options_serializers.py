@@ -43,6 +43,13 @@ class ProvinceSerializer(serializers.ModelSerializer):
         fields = ("id", "province_name", "cities")
 
 
+class OnlyProvinceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Province
+        fields = ("id", "province_name")
+
+
 class ProvinceCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Province

@@ -2,12 +2,12 @@ import contextlib
 
 from rest_framework import serializers
 
-from authentications.serializers import UserSerializer
+from authentications.serializers import BasicUserInformationSerializer
 from support.models import Inquiry, InquiryAnswer
 
 
 class InquirySerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
     answer_count = serializers.IntegerField(
         source="inquiry_answers.count", read_only=True
     )
@@ -27,7 +27,7 @@ class InquirySerializer(serializers.ModelSerializer):
 
 
 class InquiryAnswerSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
 
     class Meta:
         model = InquiryAnswer

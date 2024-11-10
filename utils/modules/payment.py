@@ -3,6 +3,8 @@ import json
 import requests
 from django.conf import settings
 
+from utils.helper import string_to_base64
+
 
 class AuthorizeNet:
     def __init__(self, api_login_id, transaction_key):
@@ -281,3 +283,32 @@ class AuthorizeNet:
         response_data = json.loads(response.content.decode("utf-8-sig"))
 
         return response_data
+
+
+class TossPayments:
+    def __init__(self, secret_key):
+        self.secret_key = string_to_base64(f"{secret_key}:")
+
+    def _get_payment_headers(self):
+        payment_headers = {
+            "Authorization": f"Basic {self.secret_key}",
+            "Content-Type": "application/json",
+        }
+        return payment_headers
+
+    def authorize_payment(self, amount, order_id, payment_key):
+        payment_headers = self._get_payment_headers()
+
+        payload = {
+            "paymentKey": payment_key,
+            "amount": amount,
+            "orderId": order_id,
+        }
+
+        response = requests.post(
+            f"{settings.TOSS_API_URL}payments/confirm",
+            data=json.dumps(payload),
+            headers=payment_headers,
+        )
+
+        return response.status_code, response.json()
