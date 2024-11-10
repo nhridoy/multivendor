@@ -18,21 +18,8 @@ from options.serializers import (
     OnlyProvinceSerializer,
 )
 
+from . import UserInformationSerializer
 from .helper_functions import update_related_instance
-
-
-class UserInformationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserInformation
-        fields = (
-            "full_name",
-            "gender",
-            "province",
-            "city",
-            "address",
-            "profile_picture",
-            "date_of_birth",
-        )
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -105,93 +92,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AdminUserSerializer(RegistrationSerializer):
-    """
-    Admin User Registration Serializer
-    """
+class AdminUserInformationSerializer(UserInformationSerializer):
+    phone_number = serializers.CharField(required=True)
 
-    role = serializers.ChoiceField(choices=User.ROLE, required=True)
-    full_name = serializers.CharField(
-        source="user_information.full_name",
-        required=True,
-        write_only=True,
-    )
-    profile_picture = serializers.ImageField(
-        source="user_information.profile_picture",
-        required=False,
-        write_only=True,
-    )
-    gender = serializers.ChoiceField(
-        source="user_information.gender",
-        choices=UserInformation.GENDER,
-        required=False,
-        write_only=True,
-    )
-    date_of_birth = serializers.DateField(
-        source="user_information.date_of_birth",
-        required=False,
-        write_only=True,
-    )
-    country = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(),
-        source="user_information.country",
-        required=False,
-        write_only=True,
-    )
-    province = serializers.PrimaryKeyRelatedField(
-        queryset=Province.objects.all(),
-        source="user_information.province",
-        required=False,
-        write_only=True,
-    )
-    city = serializers.PrimaryKeyRelatedField(
-        queryset=City.objects.all(),
-        source="user_information.city",
-        required=False,
-        write_only=True,
-    )
-    language = serializers.PrimaryKeyRelatedField(
-        queryset=Language.objects.all(),
-        source="user_information.language",
-        required=False,
-        write_only=True,
-    )
-    address = serializers.CharField(
-        source="user_information.address",
-        required=False,
-        write_only=True,
-    )
-    phone_number = serializers.CharField(
-        source="user_information.phone_number",
-        required=False,
-        write_only=True,
-    )
-    user_information = UserInformationSerializer(read_only=True)
-
-    class Meta(RegistrationSerializer.Meta):
-        fields = [
-            "id",
-            "role",
-            "email",
-            "password",
-            "retype_password",
-            "is_verified",
-            "is_active",
-            "is_superuser",
-            "is_staff",
-            "full_name",
-            "profile_picture",
-            "gender",
-            "date_of_birth",
-            "country",
-            "province",
-            "city",
-            "language",
-            "address",
-            "phone_number",
-            "user_information",
-        ]
-        read_only_fields = ["id", "is_verified", "is_staff", "is_superuser"]
+    class Meta(UserInformationSerializer.Meta):
+        read_only_fields = (
+            "is_phone_verified",
+        )  # Remove phone_number from read_only_fields
 
     def validate_phone_number(self, value):
         if not value:
@@ -209,6 +116,30 @@ class AdminUserSerializer(RegistrationSerializer):
 
         return value
 
+
+class AdminUserSerializer(RegistrationSerializer):
+    """
+    Admin User Registration Serializer
+    """
+
+    role = serializers.ChoiceField(choices=User.ROLE, default="admin")
+    user_information = AdminUserInformationSerializer()
+
+    class Meta(RegistrationSerializer.Meta):
+        fields = [
+            "id",
+            "role",
+            "email",
+            "password",
+            "retype_password",
+            "is_verified",
+            "is_active",
+            "is_superuser",
+            "is_staff",
+            "user_information",
+        ]
+        read_only_fields = ["id", "is_verified", "is_staff", "is_superuser"]
+
     @transaction.atomic()
     def create(self, validated_data):
         is_active = validated_data.pop("is_active", True)
@@ -225,27 +156,3 @@ class AdminUserSerializer(RegistrationSerializer):
         instance.is_active = is_active
         instance.save(update_fields=["is_active"])
         return instance
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["user_information"]["country"] = (
-            CountrySerializer(instance.user_information.country).data
-            if instance.user_information.country
-            else None
-        )
-        data["user_information"]["province"] = (
-            OnlyProvinceSerializer(instance.user_information.province).data
-            if instance.user_information.province
-            else None
-        )
-        data["user_information"]["city"] = (
-            CitySerializer(instance.user_information.city).data
-            if instance.user_information.city
-            else None
-        )
-        data["user_information"]["language"] = (
-            LanguageSerializer(instance.user_information.language).data
-            if instance.user_information.language
-            else None
-        )
-        return data

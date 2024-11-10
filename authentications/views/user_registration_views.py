@@ -138,6 +138,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAdminUser,)
     queryset = User.objects.all().select_related(
         "user_information",
+        "user_information__language",
         "user_information__country",
         "user_information__province",
         "user_information__city",
