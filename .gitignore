@@ -160,7 +160,7 @@ static/admin/
 static/rest_framework/
 
 # docker
-docker-compose.yml
+#docker-compose.yml
 
 
 # vscode
