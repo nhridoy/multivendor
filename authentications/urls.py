@@ -99,6 +99,8 @@ social_urls = [
     path("google-callback/", GoogleCallbackView.as_view(), name="google_callback"),
     path("github-auth/", GithubWebLoginView.as_view(), name="github_login"),
     path("github-callback/", GithubCallbackView.as_view(), name="github_callback"),
+    # For testing ! TODO: Comment before shipping to production
+    path("social/", include("social_django.urls", namespace="social")),
 ]
 urlpatterns = []
 urlpatterns += router.urls
