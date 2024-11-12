@@ -10,6 +10,9 @@ LABEL org.opencontainers.image.source=https://github.com/potentialInc/enterMong-
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+# Set DJANGO_SETTINGS_MODULE to your project's settings module
+ENV DJANGO_SETTINGS_MODULE=core.settings
+
 # Set the working directory in the container
 WORKDIR /app
 
