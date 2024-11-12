@@ -6,8 +6,9 @@ from django.contrib.auth import logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from fcm_django.models import FCMDevice
 from pyotp import TOTP
-from rest_framework import exceptions, generics, permissions, status, views
+from rest_framework import exceptions, generics, permissions, response, status, views
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
@@ -16,6 +17,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from authentications.models import User
 from authentications.serializers import (
+    FCMDeleteSerializer,
     LoginSerializer,
     OTPLoginSerializer,
     OTPSerializer,
@@ -315,3 +317,21 @@ class OTPView(generics.GenericAPIView):
         return Response(
             {"data": {"detail": _("OTP Removed")}, "message": _("OTP Removed")}
         )
+
+
+class FCMDeleteView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = FCMDeleteSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        device = generics.get_object_or_404(
+            FCMDevice,
+            user=self.request.user,
+            registration_id=serializer.validated_data.get("device_id"),
+        )
+
+        device.delete()
+
+        return response.Response({"data": "Deleted Successfully"})

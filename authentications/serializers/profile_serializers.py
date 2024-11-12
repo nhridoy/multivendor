@@ -93,7 +93,6 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 
 class PersonalProfileSerializer(BaseUserSerializer):
-    user_information = UserInformationSerializer()
 
     # nanny_information = NannyInformationSerializer(required=False)
 

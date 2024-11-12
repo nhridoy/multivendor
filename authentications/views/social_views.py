@@ -282,3 +282,51 @@ class AppleLoginView(views.APIView):
 
         except requests.exceptions.HTTPError as e:
             raise exceptions.AuthenticationFailed(detail=e) from e
+
+
+# class AppleLoginView(views.APIView):
+#     permission_classes = []
+#     authentication_classes = []
+#
+#     @extend_schema(
+#         parameters=[
+#             OpenApiParameter(
+#                 "code",
+#                 type={"type": "string"},
+#                 style="form",
+#                 explode=False,
+#                 required=True,
+#             )
+#         ]
+#     )
+#     def post(self, request, *args, **kwargs):
+#         # Extract and validate the access token
+#         serializer = SocialLoginSerializer(
+#             data={"access_token": self.request.query_params.get("code")}
+#         )
+#         serializer.is_valid(raise_exception=True)
+#
+#         strategy = load_strategy(request)
+#         apple_backend = AppleIdAuth(strategy=strategy)
+#
+#         try:
+#             # Use the access token to fetch user data
+#             user_data = apple_backend.user_data(
+#                 serializer.validated_data.get("access_token")
+#             )
+#             print("user_data: ", user_data)
+#             user = register_social_user(
+#                 profile_image_url=user_data.get("picture"),
+#                 email=user_data.get("email"),
+#                 name=user_data.get("name"),
+#                 provider="apple",
+#                 role="user",
+#             )
+#             print("user: ", user)
+#
+#             # FIXME: Use this line for request-based login
+#             return response.Response(extract_token(get_token(user)))
+#             # FIXME: Use this line for both cookie and request-based login
+#             # return direct_login(request, resp=response.Response(), user=user, token_data=extract_token(get_token(user)))
+#         except requests.HTTPError:
+#             raise exceptions.AuthenticationFailed("Failed to authenticate with Apple")

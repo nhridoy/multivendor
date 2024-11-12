@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenVerifyView
 
@@ -6,6 +6,7 @@ from authentications.views import (
     AdminUserViewSet,
     AppleLoginView,
     ChangePasswordView,
+    FCMDeleteView,
     GithubCallbackView,
     GithubLoginView,
     GithubWebLoginView,
@@ -62,6 +63,7 @@ login_urls = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("token/refresh/", MyTokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("fcm-delete/", FCMDeleteView.as_view(), name="fcm-delete"),
 ]
 otp_urls = [
     path("otp-check/", OTPCheckView.as_view(), name="otp-check"),
@@ -72,8 +74,9 @@ profile_urls = [
         "profile/",
         ProfileViewSet.as_view(
             {
-                "get": "retrieve",
-                "patch": "update",
+                "get": "profile",
+                "put": "profile",
+                "patch": "profile",
             }
         ),
         name="profile",
@@ -96,6 +99,8 @@ social_urls = [
     path("google-callback/", GoogleCallbackView.as_view(), name="google_callback"),
     path("github-auth/", GithubWebLoginView.as_view(), name="github_login"),
     path("github-callback/", GithubCallbackView.as_view(), name="github_callback"),
+    # For testing ! TODO: Comment before shipping to production
+    path("social/", include("social_django.urls", namespace="social")),
 ]
 urlpatterns = []
 urlpatterns += router.urls
