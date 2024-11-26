@@ -16,9 +16,10 @@ class ArticleCategoryCreateSerializer(serializers.ModelSerializer):
         fields = ("id", "icon", "name_en", "name_ko")
 
 
+
 class ArticleCommentsSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField(read_only=True)
-    user = serializers.SerializerMethodField(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
 
     class Meta:
         model = ArticleComment
@@ -45,19 +46,6 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
             replies, many=True, context={"request": self.context.get("request")}
         ).data
 
-    def get_user(self, obj):
-        request = self.context.get("request")
-        return {
-            "id": obj.user.id,
-            "full_name": obj.user.user_information.full_name,
-            "profile_picture": (
-                request.build_absolute_uri(
-                    obj.user.user_information.profile_picture.url
-                )
-                if obj.user.user_information.profile_picture
-                else None
-            ),
-        }
 
     def validate_parent_comment(self, value):
         if value:
@@ -69,9 +57,9 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField(read_only=True)
+    user = BasicUserInformationSerializer(read_only=True)
     category = ArticleCategorySerializer(read_only=True)
-    is_liked = serializers.SerializerMethodField(read_only=True)
+    is_liked = serializers.BooleanField(read_only=True, default=False)
 
     class Meta:
         model = Article
@@ -89,24 +77,6 @@ class ArticleListSerializer(serializers.ModelSerializer):
             "updated_at",
             "is_liked",
         ]
-
-    def get_user(self, obj):
-        request = self.context.get("request")
-        return {
-            "id": obj.user.id,
-            "full_name": obj.user.user_information.full_name,
-            "profile_picture": (
-                request.build_absolute_uri(
-                    obj.user.user_information.profile_picture.url
-                )
-                if obj.user.user_information.profile_picture
-                else None
-            ),
-        }
-
-    def get_is_liked(self, obj):
-        user_likes = self.context.get("user_likes", set())
-        return obj.id in user_likes
 
 
 class ArticleDetailSerializer(serializers.ModelSerializer):
