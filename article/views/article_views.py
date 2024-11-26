@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import F, Prefetch, Exists, OuterRef
 from rest_framework import (
     filters,
     generics,
@@ -62,7 +62,11 @@ class ArticleView(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.annotate(
-            is_liked=F("article_like__user")
+            is_liked=Exists(
+                ArticleLike.objects.filter(
+                    article_id=OuterRef("id"), user=self.request.user
+                )
+            )
         ).order_by("-created_at")
 
     def get_serializer_class(self):

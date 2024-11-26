@@ -79,24 +79,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
         ]
 
 
-class ArticleDetailSerializer(serializers.ModelSerializer):
-    user = BasicUserInformationSerializer(read_only=True)
+class ArticleDetailSerializer(ArticleListSerializer):
     article_comments = ArticleCommentsSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Article
-        fields = (
-            "id",
-            "slug",
-            "category",
-            "user",
-            "title",
-            "thumbnail",
-            "short_content",
-            "content",
-            "total_like",
-            "total_comment",
-            "created_at",
-            "updated_at",
-            "article_comments",
-        )
+    class Meta(ArticleListSerializer.Meta):
+        fields = ArticleListSerializer.Meta.fields + ["content", "article_comments"]
