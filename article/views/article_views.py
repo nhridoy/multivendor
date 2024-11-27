@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F, Prefetch, Exists, OuterRef
+from django.db.models import Exists, F, OuterRef, Prefetch
 from rest_framework import (
     filters,
     generics,
@@ -42,7 +42,10 @@ class ArticleCategoryView(viewsets.ModelViewSet):
 
 
 class ArticleView(viewsets.ModelViewSet):
-    permission_classes = (permissions.IsAuthenticated, IsAdminOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
     queryset = (
         Article.objects.all()
         .select_related("user__user_information", "category")

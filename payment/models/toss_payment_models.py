@@ -12,6 +12,7 @@ class Order(BaseModel):
         ("PENDING", _("Pending")),
         ("PAYMENT_COMPLETE", _("Payment Complete")),
         ("PAYMENT_FAILED", _("Payment Failed")),
+        ("CANCELLED", _("Cancelled")),
     ]
     order_id = models.CharField(max_length=255, unique=True, editable=False)
     user = models.ForeignKey(

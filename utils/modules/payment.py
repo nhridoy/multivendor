@@ -312,3 +312,19 @@ class TossPayments:
         )
 
         return response.status_code, response.json()
+
+    def cancel_payment(self, payment_key: str, reason: str = "", amount: int = None):
+        payment_headers = self._get_payment_headers()
+
+        payload = {"cancelReason": reason}
+
+        if amount:
+            payload["cancelAmount"] = amount
+
+        response = requests.post(
+            f"{settings.TOSS_API_URL}payments/{payment_key}/cancel",
+            data=json.dumps(payload),
+            headers=payment_headers,
+        )
+
+        return response.status_code, response.json()

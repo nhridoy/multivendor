@@ -16,7 +16,6 @@ class ArticleCategoryCreateSerializer(serializers.ModelSerializer):
         fields = ("id", "icon", "name_en", "name_ko")
 
 
-
 class ArticleCommentsSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField(read_only=True)
     user = BasicUserInformationSerializer(read_only=True)
@@ -45,7 +44,6 @@ class ArticleCommentsSerializer(serializers.ModelSerializer):
         return ArticleCommentsSerializer(
             replies, many=True, context={"request": self.context.get("request")}
         ).data
-
 
     def validate_parent_comment(self, value):
         if value:

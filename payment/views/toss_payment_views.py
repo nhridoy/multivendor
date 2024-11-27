@@ -3,7 +3,11 @@ from rest_framework import response, viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from payment.models import Order
-from payment.serializers import OrderSerializer, PaymentSerializer
+from payment.serializers import (
+    CancelPaymentSerializer,
+    OrderSerializer,
+    PaymentSerializer,
+)
 from utils.extensions.permissions import IsAdmin, IsAdminOrTeacherOwner, IsStudent
 
 
@@ -36,7 +40,22 @@ class PaymentViewSet(viewsets.ViewSet):
     serializer_class = PaymentSerializer
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response({"message": _("Payment successful.")})
+
+
+class CancelPaymentViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated, IsStudent]
+    serializer_class = CancelPaymentSerializer
+
+    def create(self, request):
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response({"message": _("Payment cancelled.")})

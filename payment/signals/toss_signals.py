@@ -10,3 +10,5 @@ from payment.models import Order
 def create_enrollment(sender, instance, created, **kwargs):
     if instance.status == "PAYMENT_COMPLETE":
         Enrollment.objects.create(user=instance.user, course=instance.course)
+    if instance.status == "CANCELLED":
+        Enrollment.objects.filter(user=instance.user, course=instance.course).delete()
