@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import Exists, F, OuterRef, Prefetch
 from rest_framework import (
     filters,
     generics,
@@ -42,6 +42,10 @@ class ArticleCategoryView(viewsets.ModelViewSet):
 
 
 class ArticleView(viewsets.ModelViewSet):
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminOrReadOnly,
+    )
     queryset = (
         Article.objects.all()
         .select_related("user__user_information", "category")
@@ -53,31 +57,20 @@ class ArticleView(viewsets.ModelViewSet):
                 ).prefetch_related("replies__replies__replies__replies__replies"),
             ),
         )
-    ).order_by("-created_at")
+    )
     lookup_field = "slug"
     filterset_fields = ("category",)
     ordering_fields = ("total_like",)
     search_fields = ["title"]
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        if self.request.user.is_authenticated:
-            user_likes = ArticleLike.objects.filter(user=self.request.user).values_list(
-                "article_id", flat=True
+    def get_queryset(self):
+        return self.queryset.annotate(
+            is_liked=Exists(
+                ArticleLike.objects.filter(
+                    article_id=OuterRef("id"), user=self.request.user
+                )
             )
-            context["user_likes"] = set(user_likes)
-        else:
-            context["user_likes"] = set()
-        return context
-
-    def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            permission_classes = (
-                permissions.IsAuthenticated,
-            )  # Allow GET, HEAD, OPTIONS for all users
-        else:
-            permission_classes = (IsAdmin,)
-        return [permission() for permission in permission_classes]
+        ).order_by("-created_at")
 
     def get_serializer_class(self):
         if self.action == "list":

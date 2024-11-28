@@ -1,6 +1,7 @@
 from rest_framework.routers import DefaultRouter
 
 from payment.views import (
+    CancelPaymentViewSet,
     GetSavedCardViewSet,
     MakePaymentViewSet,
     OrderViewSet,
@@ -16,6 +17,7 @@ router.register(r"get-saved-cards", GetSavedCardViewSet, basename="get-saved-car
 # Toss Payment
 router.register(r"orders", OrderViewSet, basename="order")
 router.register(r"complete", PaymentViewSet, basename="complete")
+router.register(r"cancel", CancelPaymentViewSet, basename="cancel")
 
 
 urlpatterns = []

@@ -90,11 +90,15 @@ class PaymentSerializer(serializers.Serializer):
         super().__init__(*args, **kwargs)
 
     def validate(self, attrs):
+        request = self.context.get("request")
+
         payment_key = attrs.get("payment_key")
         order_id = attrs.get("order_id")
         self.order = generics.get_object_or_404(
             Order.objects,
             order_id=order_id,
+            user=request.user,
+            status="PENDING",
         )
 
         toss_payments = TossPayments(settings.TOSS_SECRET_KEY)
@@ -116,4 +120,44 @@ class PaymentSerializer(serializers.Serializer):
         self.order.save(
             update_fields=["status", "payment_key", "payment_type", "payment_response"]
         )
+        return self.order
+
+
+class CancelPaymentSerializer(serializers.Serializer):
+    order_id = serializers.CharField()
+
+    def __init__(self, *args, **kwargs):
+        self.order = None
+        self.response_code = None
+        self.payment_response = None
+
+        super().__init__(*args, **kwargs)
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+
+        order_id = attrs.get("order_id")
+        self.order = generics.get_object_or_404(
+            Order.objects,
+            order_id=order_id,
+            user=request.user,
+            status="PAYMENT_COMPLETE",
+        )
+
+        toss_payments = TossPayments(settings.TOSS_SECRET_KEY)
+        self.response_code, self.payment_response = toss_payments.cancel_payment(
+            payment_key=self.order.payment_key, reason="User requested cancellation"
+        )
+
+        if self.response_code != 200:
+            raise serializers.ValidationError(
+                {"order_id": _("Payment cancellation failed. Please try again.")}
+            )
+
+        return attrs
+
+    def create(self, validated_data):
+        self.order.status = "CANCELLED"
+        self.order.payment_response = self.payment_response
+        self.order.save(update_fields=["status", "payment_response"])
         return self.order
