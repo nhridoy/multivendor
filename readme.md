@@ -72,6 +72,68 @@ Run the Django application using the ASGI server:
 python manage.py runserver
 ```
 
+## API Reference
+
+####  Authentication Endpoints:
+| HTTP      | Endpoints                   | Action                 |
+|-----------|-----------------------------|------------------------|
+| **POST**  | `api/auth/login/seller/`    | To login a Seller      |
+| **POST**  | `api/auth/login/user/`      | To login a User        |
+| **POST**  | `api/auth/login/admin/`     | To login a Admin       |
+| **POST**  | `/api/auth/register/`       | To register a user     |
+| **GET**   | `/api/auth/profile/`        | To Get Profile         |
+| **PATCH** | `/api/auth/profile/`        | To Update Profile      |
+| **POST**  | `/api/auth/logout/`         | To logout              |
+| **GET**   | `/api/auth/admin/user/`     | User List for Admin    |
+| **GET**   | `/api/auth/admin/user/:id/` | User Details for Admin |
+| **PATCH** | `/api/auth/admin/user/:id/` | User Update for Admin  |
+
+####  Category Endpoints:
+| HTTP       | Endpoints                      | Action                |
+|------------|--------------------------------|-----------------------|
+| **POST**   | `api/products/categories/`     | To Create a Category  |
+| **GET**    | `api/products/categories/`     | To Get All Categories |
+| **GET**    | `api/products/categories/:id/` | To Get a Category     |
+| **PATCH**  | `api/products/categories/:id/` | To Update a Category  |
+| **DELETE** | `api/products/categories/:id/` | To Delete a Category  |
+
+####  Sub Category Endpoints:
+| HTTP       | Endpoints                          | Action                    |
+|------------|------------------------------------|---------------------------|
+| **POST**   | `api/products/sub-categories/`     | To Create a Sub Category  |
+| **GET**    | `api/products/sub-categories/`     | To Get All Sub Categories |
+| **GET**    | `api/products/sub-categories/:id/` | To Get a Sub Category     |
+| **PATCH**  | `api/products/sub-categories/:id/` | To Update a Sub Category  |
+| **DELETE** | `api/products/sub-categories/:id/` | To Delete a Sub Category  |
+
+####  Product Endpoints:
+| HTTP       | Endpoints           | Action              |
+|------------|---------------------|---------------------|
+| **POST**   | `api/products/`     | To Create a Product |
+| **GET**    | `api/products/`     | To Get All Products |
+| **GET**    | `api/products/:id/` | To Get a Product    |
+| **PATCH**  | `api/products/:id/` | To Update a Product |
+| **DELETE** | `api/products/:id/` | To Delete a Product |
+
+####  Cart Endpoints:
+| HTTP       | Endpoints                            | Action                   |
+|------------|--------------------------------------|--------------------------|
+| **POST**   | `api/orders/cart/`                   | To Add a Product to Cart |
+| **GET**    | `api/orders/cart/`                   | To Get Cart              |
+| **GET**    | `api/orders/cart/:id/`               | To Get Cart Details      |
+| **DELETE** | `api/orders/cart/:id/`               | To Delete Cart           |
+| **GET**    | `api/orders/cart/increase-quantity/` | To Increase Quantity     |
+| **GET**    | `api/orders/cart/decrease-quantity/` | To Decrease Quantity     |
+
+####  Order Endpoints:
+| HTTP     | Endpoints             | Action                    |
+|----------|-----------------------|---------------------------|
+| **POST** | `api/orders/`         | To Create an Order        |
+| **GET**  | `api/orders/`         | To Get All Orders         |
+| **GET**  | `api/orders/:id/`     | To Get an Order Details   |
+| **GET**  | `api/order-item/`     | List For Seller and Admin |
+| **GET**  | `api/order-item/:id/` | Get For Seller and Admin  |
+
 ## Notes
 
 - Knock me on slack for environment variables.
