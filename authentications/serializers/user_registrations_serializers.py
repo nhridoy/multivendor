@@ -10,13 +10,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers, validators
 
 from authentications.models import User, UserInformation
-from options.models import City, Country, Language, Province
-from options.serializers import (
-    CitySerializer,
-    CountrySerializer,
-    LanguageSerializer,
-    OnlyProvinceSerializer,
-)
+
 
 from . import UserInformationSerializer
 from .helper_functions import update_related_instance

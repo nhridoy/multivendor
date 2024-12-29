@@ -30,6 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     ROLE = (
         ("user", "user"),
+        ("seller", "seller"),
         ("admin", "admin"),
     )
 
@@ -111,21 +112,6 @@ class UserInformation(BaseModel):
 
     date_of_birth = models.DateField(
         verbose_name="Date of Birth", blank=True, null=True
-    )
-
-    language = models.ForeignKey(
-        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-    country = models.ForeignKey(
-        "options.Country", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-    province = models.ForeignKey(
-        "options.Province", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    city = models.ForeignKey(
-        "options.City", on_delete=models.SET_NULL, null=True, blank=True
     )
 
     address = models.TextField(

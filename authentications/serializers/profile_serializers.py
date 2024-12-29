@@ -5,13 +5,6 @@ from django.db.models import Avg
 from rest_framework import serializers
 
 from authentications.models import User, UserInformation, UserTwoStepVerification
-from options.models import City, Country, Language, Province
-from options.serializers import (
-    CitySerializer,
-    CountrySerializer,
-    LanguageSerializer,
-    OnlyProvinceSerializer,
-)
 
 from .helper_functions import update_related_instance
 
@@ -36,10 +29,6 @@ class UserInformationSerializer(serializers.ModelSerializer):
             "profile_picture",
             "gender",
             "date_of_birth",
-            "language",
-            "country",
-            "province",
-            "city",
             "address",
             "phone_number",
             "is_phone_verified",
@@ -51,10 +40,6 @@ class UserInformationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response["language"] = LanguageSerializer(instance.language).data
-        response["country"] = CountrySerializer(instance.country).data
-        response["province"] = OnlyProvinceSerializer(instance.province).data
-        response["city"] = CitySerializer(instance.city).data
         return response
 
 
