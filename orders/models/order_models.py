@@ -20,11 +20,9 @@ class Order(BaseModel):
         related_name="orders",
         limit_choices_to={"role": "user"},
     )
-    shipping_address = models.ForeignKey(
-        "authentications.ShippingAddress",
-        on_delete=models.CASCADE,
-        related_name="orders",
-    )
+    shipping_name = models.CharField(max_length=100)
+    shipping_address = models.TextField()
+    shipping_phone = models.CharField(max_length=50)
     status = models.CharField(
         max_length=20, choices=ORDER_STATUS_CHOICES, default="pending"
     )

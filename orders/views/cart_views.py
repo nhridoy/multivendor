@@ -10,6 +10,14 @@ class CartViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     http_method_names = ["get", "post", "delete"]
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = CartSerializers(queryset, many=True)
+        total_price = sum(cart.total_price() for cart in queryset)
+        return response.Response(
+            {"total_price": total_price, "cart_items": serializer.data}
+        )
+
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
 

@@ -1,7 +1,6 @@
 from django.db import transaction
 from rest_framework import permissions, response, status, viewsets
 
-from authentications.models import ShippingAddress
 from orders.models import Cart, Order, OrderItem
 from orders.serializers import OrderDetailSerializer, OrderSerializer
 

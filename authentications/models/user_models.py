@@ -120,7 +120,7 @@ class UserInformation(BaseModel):
         null=True,
     )
     phone_number = models.CharField(
-        max_length=50, verbose_name="Phone Number", unique=True, blank=True, null=True
+        max_length=50, verbose_name="Phone Number", blank=True, null=True
     )
 
     is_phone_verified = models.BooleanField(

@@ -28,7 +28,6 @@ from authentications.views import (
     PasswordValidateView,
     ProfileViewSet,
     RegistrationView,
-    ShippingAddressViewSet,
 )
 from authentications.views.reset_password_views import (
     ResetPasswordCheckView,
@@ -40,9 +39,6 @@ router = DefaultRouter()
 router.register(r"register", RegistrationView, basename="register")
 router.register(r"admin/user", AdminUserViewSet, basename="admin-user")
 router.register(r"profile", ProfileViewSet, basename="profile")
-router.register(
-    r"shipping-address", ShippingAddressViewSet, basename="shipping-address"
-)
 
 password_urls = [
     path("password-validate/", PasswordValidateView.as_view()),

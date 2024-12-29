@@ -21,7 +21,6 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
-            "shipping_address",
             "status",
             "total_price",
             "created_at",
@@ -35,12 +34,6 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
-    def validate_shipping_address(self, value):
-        user = self.context["request"].user
-        if value.user != user:
-            raise serializers.ValidationError("Invalid shipping address.")
-        return value
 
     @transaction.atomic
     def create(self, validated_data):
