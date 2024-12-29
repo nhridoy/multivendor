@@ -19,14 +19,14 @@
     - email: seller1@gmail.com
     - password: admin@123%23
 - Seller Two
-  - email: seller2@gmail.com
-  - password: admin@123%23
+    - email: seller2@gmail.com
+    - password: admin@123%23
 - Customer One
-  - email: user1@gmail.com
-  - password: admin@123%23
+    - email: user1@gmail.com
+    - password: admin@123%23
 - Customer Two
-  - email: user2@gmail.com
-  - password: admin@123%23
+    - email: user2@gmail.com
+    - password: admin@123%23
 
 ## Prerequisites
 
