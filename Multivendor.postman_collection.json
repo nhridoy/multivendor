@@ -193,6 +193,32 @@
 					"response": []
 				},
 				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{URL}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{URL}}/api/auth/logout/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Profile",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
@@ -1461,14 +1487,13 @@
 									]
 								},
 								"url": {
-									"raw": "{{URL}}/api/orders/order/",
+									"raw": "{{URL}}/api/orders/",
 									"host": [
 										"{{URL}}"
 									],
 									"path": [
 										"api",
 										"orders",
-										"order",
 										""
 									]
 								}
@@ -1500,14 +1525,13 @@
 									]
 								},
 								"url": {
-									"raw": "{{URL}}/api/orders/order/:id/",
+									"raw": "{{URL}}/api/orders/:id/",
 									"host": [
 										"{{URL}}"
 									],
 									"path": [
 										"api",
 										"orders",
-										"order",
 										":id",
 										""
 									],
@@ -1546,14 +1570,13 @@
 									]
 								},
 								"url": {
-									"raw": "{{URL}}/api/orders/order/",
+									"raw": "{{URL}}/api/orders/",
 									"host": [
 										"{{URL}}"
 									],
 									"path": [
 										"api",
 										"orders",
-										"order",
 										""
 									]
 								}
