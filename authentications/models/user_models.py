@@ -30,6 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     ROLE = (
         ("user", "user"),
+        ("seller", "seller"),
         ("admin", "admin"),
     )
 
@@ -113,28 +114,13 @@ class UserInformation(BaseModel):
         verbose_name="Date of Birth", blank=True, null=True
     )
 
-    language = models.ForeignKey(
-        "options.Language", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-    country = models.ForeignKey(
-        "options.Country", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
-    province = models.ForeignKey(
-        "options.Province", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    city = models.ForeignKey(
-        "options.City", on_delete=models.SET_NULL, null=True, blank=True
-    )
-
     address = models.TextField(
         verbose_name="Address",
         blank=True,
         null=True,
     )
     phone_number = models.CharField(
-        max_length=50, verbose_name="Phone Number", unique=True, blank=True, null=True
+        max_length=50, verbose_name="Phone Number", blank=True, null=True
     )
 
     is_phone_verified = models.BooleanField(

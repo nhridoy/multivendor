@@ -78,13 +78,7 @@ class AdminUser(UserAdmin):
 
 class AdminUserInformation(admin.ModelAdmin):
     ordering = ("-created_at",)
-    autocomplete_fields = (
-        "user",
-        "language",
-        "country",
-        "province",
-        "city",
-    )
+    autocomplete_fields = ("user",)
     search_fields = (
         "user__email",
         "full_name",
@@ -95,10 +89,6 @@ class AdminUserInformation(admin.ModelAdmin):
         "user",
         "full_name",
         "gender",
-        "language",
-        "country",
-        "province",
-        "city",
         "created_at",
     )
     fieldsets = (
@@ -118,11 +108,7 @@ class AdminUserInformation(admin.ModelAdmin):
             "Contact Information",
             {
                 "fields": (
-                    "language",
                     "address",
-                    "country",
-                    "province",
-                    "city",
                     "phone_number",
                     "is_phone_verified",
                 )

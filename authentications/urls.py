@@ -57,6 +57,7 @@ password_urls = [
     path("password-reset-confirm/", ResetPasswordConfirmView.as_view()),
 ]
 login_urls = [
+    path("login/seller/", LoginView.as_view(), name="seller-login"),
     path("login/user/", LoginView.as_view(), name="user-login"),
     path("login/admin/", LoginView.as_view(), name="admin-login"),
     path("otp-login/", OTPLoginView.as_view(), name="otp-login"),

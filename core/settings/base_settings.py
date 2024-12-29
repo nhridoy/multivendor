@@ -57,13 +57,9 @@ INSTALLED_APPS = [
     "social_django",
     # created apps
     "authentications",
-    "chat",
-    "article",
-    "forum",
-    "support",
-    "options",
-    "site_settings",
-    "payment",
+    "product",
+    "orders",
+    "analytics",
 ]
 
 MIDDLEWARE = [
