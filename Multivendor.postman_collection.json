@@ -1550,7 +1550,7 @@
 	"variable": [
 		{
 			"key": "URL",
-			"value": "http://127.0.0.1:8000",
+			"value": "https://multivendor-1k0o.onrender.com",
 			"type": "string"
 		}
 	]
