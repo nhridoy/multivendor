@@ -11,7 +11,6 @@ from rest_framework import serializers, validators
 
 from authentications.models import User, UserInformation
 
-
 from . import UserInformationSerializer
 from .helper_functions import update_related_instance
 

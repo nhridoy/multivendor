@@ -78,9 +78,7 @@ class AdminUser(UserAdmin):
 
 class AdminUserInformation(admin.ModelAdmin):
     ordering = ("-created_at",)
-    autocomplete_fields = (
-        "user",
-    )
+    autocomplete_fields = ("user",)
     search_fields = (
         "user__email",
         "full_name",
