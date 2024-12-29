@@ -276,6 +276,155 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "User List for Admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{URL}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "admin@admin.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/admin/user/?role=seller",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"admin",
+								"user",
+								""
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "seller",
+									"description": "seller/user"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Details for Admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{URL}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "admin@admin.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/admin/user/:id/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"admin",
+								"user",
+								":id",
+								""
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "7fe0a82d-9899-4b1f-a885-3f00a740960c"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Update for Admin",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Origin",
+								"value": "{{URL}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "is_active",
+									"value": "true",
+									"description": "true/false",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{URL}}/api/auth/admin/user/:id/",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"admin",
+								"user",
+								":id",
+								""
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "7fe0a82d-9899-4b1f-a885-3f00a740960c"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
