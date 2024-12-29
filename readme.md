@@ -134,6 +134,10 @@ python manage.py runserver
 | **GET**  | `api/order-item/`     | List For Seller and Admin |
 | **GET**  | `api/order-item/:id/` | Get For Seller and Admin  |
 
+####  Analytics Endpoints:
+| HTTP    | Endpoints        | Action                     |
+|---------|------------------|----------------------------|
+| **GET** | `api/analytics/` | Seller and Admin Analytics |
 ## Notes
 
 - Knock me on slack for environment variables.
