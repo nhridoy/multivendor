@@ -1,21 +1,38 @@
 # Potential Inc
 
-## Django Boilerplate
+## Multivendor
 
 ---
 
-# Django ASGI Application Setup Guide
+# Live URL
 
-This guide will walk you through setting up and running a Django application using ASGI (Asynchronous Server Gateway
-Interface) both locally and with Docker Compose.
+[https://multivendor-1k0o.onrender.com](https://multivendor-1k0o.onrender.com)
+
+# API Documentation
+[Multivendor.postman_collection.json](Multivendor.postman_collection.json)
+
+# Accounts
+- Admin
+    - email: admin@admin.com
+    - password: admin
+- Seller One
+    - email: seller1@gmail.com
+    - password: admin@123%23
+- Seller Two
+  - email: seller2@gmail.com
+  - password: admin@123%23
+- Customer One
+  - email: user1@gmail.com
+  - password: admin@123%23
+- Customer Two
+  - email: user2@gmail.com
+  - password: admin@123%23
 
 ## Prerequisites
 
 Before getting started, make sure you have the following installed:
 
-- Python (3.10 recommended)
-- Docker
-- Docker Compose
+- Python (3.12 recommended)
 
 ## Local Setup
 
@@ -24,8 +41,8 @@ Before getting started, make sure you have the following installed:
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/potentialInc/django_boilerplate.git
-cd dir_name
+git clone git@github.com:nhridoy/multivendor.git
+cd multivendor
 ```
 
 ### Step 2: Create a Virtual Environment
@@ -55,56 +72,7 @@ Run the Django application using the ASGI server:
 python manage.py runserver
 ```
 
-## Docker Setup
-
-### Step 1: Build the Docker Image
-
-Build the Docker image using the provided Dockerfile:
-
-```bash
-docker build -t django-asgi-app .
-```
-
-### Step 2: Run the Docker Container
-
-Run the Docker container based on the built image(Manually):
-
-```bash
-docker run -p 8000:8000 django-asgi-app
-```
-
-## Using Docker Compose
-
-### Step 1: Start Docker Compose
-
-Use Docker Compose to manage your application services. First, create a new file named `docker-compose.yml` if it
-doesn't exist already, and then run the following command:
-
-```bash
-docker-compose up -d 
-```
-
-### Step 2: Access Your Application
-
-Once the services are up and running, you can access your Django application at `http://localhost:8000`.
-
-## Deployment Guide
-
-To deploy your Django application using Docker Compose, follow these steps:
-
-1. Prepare your server environment with Docker and Docker Compose installed.
-2. Copy your project files to the server.
-3. Modify the `docker-compose-example.yml` file as needed (e.g., update environment variables, ports).
-4. Use `docker-compose` to start your application services on the server:
-
-    ```bash
-    docker-compose -f up -d
-    ```
-
-5. Ensure that your server's firewall allows traffic on the specified ports.
-6. You can now access your deployed application using the server's IP address or domain name.
-
 ## Notes
 
-...
+- Knock me on slack for environment variables.
 ---
