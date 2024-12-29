@@ -11,7 +11,7 @@ router = DefaultRouter()
 #  register modelViewSets for articles
 router.register(r"categories", CategoryViewSet, basename="categories")
 router.register(r"sub-categories", SubCategoryViewSet, basename="sub-categories")
-router.register(r"products", ProductViewSet, basename="products")
+router.register(r"", ProductViewSet, basename="products")
 
 urlpatterns = []
 urlpatterns += router.urls

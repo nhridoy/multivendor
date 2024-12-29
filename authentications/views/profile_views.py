@@ -10,10 +10,6 @@ class ProfileViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = User.objects.select_related(
         "user_information",
-        "user_information__language",
-        "user_information__country",
-        "user_information__province",
-        "user_information__city",
     )
 
     def get_queryset(self):
