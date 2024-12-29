@@ -8,6 +8,7 @@ urlpatterns = [
     # app urls
     path("api/products/", include("product.urls")),
     path("api/orders/", include("orders.urls")),
+    path("api/analytics/", include("analytics.urls")),
 ]
 
 if not settings.USE_S3:
