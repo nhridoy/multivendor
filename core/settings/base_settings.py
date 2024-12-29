@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     # created apps
     "authentications",
     "product",
+    "orders",
 ]
 
 MIDDLEWARE = [

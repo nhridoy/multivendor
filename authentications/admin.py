@@ -129,6 +129,19 @@ class AdminOTPModel(admin.ModelAdmin):
     search_fields = ("user__email",)
 
 
+class ShippingAddressAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "address", "city", "state", "country", "postal_code")
+    search_fields = (
+        "user__email",
+        "address",
+        "city",
+        "state",
+        "country",
+        "postal_code",
+    )
+
+
 admin.site.register(models.User, AdminUser)
 admin.site.register(models.UserInformation, AdminUserInformation)
 admin.site.register(models.UserTwoStepVerification, AdminOTPModel)
+admin.site.register(models.ShippingAddress, ShippingAddressAdmin)

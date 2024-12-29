@@ -7,6 +7,7 @@ urlpatterns = [
     path("api/auth/", include("authentications.urls")),
     # app urls
     path("api/products/", include("product.urls")),
+    path("api/orders/", include("orders.urls")),
 ]
 
 if not settings.USE_S3:
